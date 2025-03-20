@@ -1,2 +1,2 @@
 # Promodash
-Vand golf 4
+Main repo e privat momentan teapa
