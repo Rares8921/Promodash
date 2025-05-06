@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "CashBack_App",
+    "slug": "CashBack_App",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "promodash",
+    "deepLinks": [
+      "promodash://",
+      "https://promodash.vercel.app"
+    ],
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "main.cashback",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "main.cashback",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "https", "host": "promodash.vercel.app", "pathPrefix": "/api/invite_redirect" },
+                   { "scheme": "promodash", "host": "invite" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.470943341692-rn3g2hhpnlgj020046kvaqejen4m7v8c"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "81251ff1-5d8b-475b-a561-bef39264f893"
+      }
+    }
+  }
+}
