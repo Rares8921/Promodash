@@ -1,0 +1,51 @@
+<div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Admin Dashboard</h1>
+        <p>Sign in to access your admin panel</p>
+      </div>
+      
+      <form (ngSubmit)="login()" #loginForm="ngForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            [(ngModel)]="email" 
+            required 
+            placeholder="Enter your email"
+            autocomplete="email"
+            class="form-control"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            [(ngModel)]="password" 
+            required 
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            class="form-control"
+          >
+        </div>
+        
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+        
+        <button 
+          type="submit" 
+          [disabled]="!loginForm.form.valid || isLoading" 
+          class="login-button"
+        >
+          <span *ngIf="!isLoading">Sign In</span>
+          <span *ngIf="isLoading" class="spinner"></span>
+        </button>
+      </form>
+    </div>
+  </div>

@@ -1,0 +1,74 @@
+.request-container {
+  width: 45%;               
+  margin: 15px;             
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.request-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.user-info {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.email {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+}
+
+.timestamp {
+  font-size: 0.9em;
+  color: #888;
+  margin-left: 10px;
+}
+
+.request-content {
+  font-size: 1em;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.image-preview {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+
+.attachment-image {
+  max-width: 90%;  
+  height: auto;
+  max-height: 300px; 
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.attachment-image:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .request-container {
+    width: 100%;  
+  }
+}

@@ -1,0 +1,56 @@
+<div class="withdrawal-detail-container">
+  <button (click)="goBack()" class="btn btn-back">
+    ← Back to Dashboard
+  </button>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading withdrawal details...</p>
+  </div>
+
+  <div class="withdrawal-detail" *ngIf="!loading">
+    <h2>Withdrawal Detail</h2>
+    <form [formGroup]="withdrawalForm">
+      <div class="form-group">
+        <label for="userId">User ID:</label>
+        <input id="userId" formControlName="userId" type="text" />
+      </div>
+  
+      <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input id="amount" formControlName="amount" type="number" />
+      </div>
+  
+      <div class="form-group">
+        <label for="IBAN">Payment Method:</label>
+        <input id="IBAN" formControlName="IBAN" type="text" />
+      </div>
+  
+      <div class="form-group">
+        <label for="status">Status:</label>
+        <input id="status" formControlName="status" type="text" />
+      </div>
+  
+      <div class="form-group">
+        <label for="transactionId">Transaction ID:</label>
+        <input id="transactionId" formControlName="transactionId" type="text" />
+      </div>
+  
+      <div class="form-group">
+        <label for="createdAt">Created At:</label>
+        <input id="createdAt" formControlName="createdAt" type="text" [disabled]="true" />
+      </div>
+  
+      <div class="form-group">
+        <label for="updatedAt">Updated At:</label>
+        <input id="updatedAt" formControlName="updatedAt" type="text" [disabled]="true" />
+      </div>
+  
+      <div class="actions">
+        <button type="button" (click)="save()">Save Changes</button>
+        <button type="button" (click)="delete()">Delete Withdrawal</button>
+        <button type="button" (click)="goBack()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,88 @@
+<div class="user-detail-container">
+  <button (click)="goBack()" class="btn btn-back">
+    <i class="icon-back"></i>
+    <span>Back to Dashboard</span>
+  </button>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading user details...</p>
+  </div>
+
+  <form [formGroup]="userForm" *ngIf="!loading" class="user-form">
+    <h2 class="form-title">User Details</h2>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" formControlName="email" type="email">
+      </div>
+      
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" formControlName="Name">
+      </div>
+      
+      <div class="form-group">
+        <label for="balance">Balance</label>
+        <input id="balance" formControlName="Balance" type="number">
+      </div>
+      
+      <div class="form-group">
+        <label for="pendingCredits">Pending Credits</label>
+        <input id="pendingCredits" formControlName="Pending_Credits" type="number">
+      </div>
+      
+      <div class="form-group">
+        <label for="inviteCode">Invite Code</label>
+        <input id="inviteCode" formControlName="Invite_Code">
+      </div>
+      
+      <div class="form-group">
+        <label for="invitedBy">Invited By</label>
+        <input id="invitedBy" formControlName="Invited_By">
+      </div>
+      
+      <div class="form-group">
+        <label for="pendingInviteBonus">Pending Invite Bonus</label>
+        <input id="pendingInviteBonus" formControlName="Pending_Invite_Bonus" type="number">
+      </div>
+      
+      <div class="form-group">
+        <label for="inviteCount">Invite Count</label>
+        <input id="inviteCount" formControlName="Invite_Count" type="number">
+      </div>
+      
+      <div class="form-group">
+        <label for="earnedBonus">Earned Bonus</label>
+        <input id="earnedBonus" formControlName="Earned_Bonus" type="number">
+      </div>
+      
+      <div class="form-group checkbox-group">
+        <label for="verified" class="checkbox-label">
+          <input id="verified" formControlName="Verified" type="checkbox">
+          <span class="checkbox-text">Verified</span>
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">New Password</label>
+        <input id="password" formControlName="password" type="password">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" (click)="save()" class="btn btn-primary">
+        <i class="icon-save"></i> Save Changes
+      </button>
+      <div class="secondary-actions">
+        <button type="button" (click)="resetForm()" class="btn btn-secondary">
+          <i class="icon-reset"></i> Reset
+        </button>
+        <button type="button" (click)="delete()" class="btn btn-danger">
+          <i class="icon-delete"></i> Delete User
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

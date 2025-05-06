@@ -1,0 +1,23 @@
+
+<div class="flex flex-column" style="align-items: center;">
+  <p-progressSpinner *ngIf="loading"
+    styleClass="w-4rem h-4rem loading-spinner" 
+    strokeWidth="8" 
+    fill="var(--surface-ground)" 
+    animationDuration=".5s">
+  </p-progressSpinner>
+  <div class="request-container" *ngFor="let request of requests">
+    <div class="user-info flex ">
+      <img src="assets/avatar.png" alt="Avatar" class="avatar" />
+      <span class="email">{{ request.email }}</span>
+      <span class="timestamp">{{ request.timestamp }}</span>
+    </div>
+    <div class="request-content">
+      <p>{{ request.content }}</p>
+    </div>
+    <div class="image-preview">
+      <img [src]="request.image" alt="Image" class="attachment-image" />
+    </div>
+  </div>
+</div>
+

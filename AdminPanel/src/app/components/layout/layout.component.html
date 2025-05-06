@@ -1,0 +1,15 @@
+<div class="app-container">
+  <header class="app-header">
+    <div class="logo">
+      <h1>Admin Panel</h1>
+    </div>
+    <div class="user-menu">
+      <span>{{ userEmail }}</span>
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </header>
+  
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

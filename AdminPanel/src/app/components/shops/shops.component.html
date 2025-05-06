@@ -1,0 +1,16 @@
+<div class="shops-container">
+  <h1>Available Shops with Commission</h1>
+
+  <div *ngIf="loading">Loading shops...</div>
+
+  <div *ngIf="!loading">
+    <div *ngFor="let shop of shops" class="shop-card">
+      <img [src]="'https:' + shop.logo" alt="{{ shop.name }}" class="shop-logo" />
+      <div class="shop-info">
+        <h3>{{ shop.name }}</h3>
+        <p>Category: {{ shop.category }}</p>
+        <p>Commission: {{ shop.commission }}%</p>
+      </div>
+    </div>
+  </div>
+</div>

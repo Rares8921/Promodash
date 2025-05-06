@@ -1,0 +1,23 @@
+<div class="panels-container">
+  <p-panel class="request" *ngFor="let request of requests" [toggleable]="false">
+    <ng-template pTemplate="header">
+      <div class="flex align-items-center gap-2">
+        <p-avatar [image]="'assets/avatar.png'" size="large" shape="circle"></p-avatar>
+        <span class="font-bold"> {{ request.email }} </span>
+      </div>
+    </ng-template>
+  
+    <p class="m-0"> {{ request.content }} </p>
+  
+    <ng-template pTemplate="footer">
+      <div class="flex flex-wrap align-items-center justify-content-between gap-3">
+        <span class="p-text-secondary"> Updated {{ request.timestamp}} ago </span>
+      </div>
+    </ng-template>
+  
+    <ng-template pTemplate="icons">
+      <button class="p-panel-header-icon pi pi-times"></button>
+    </ng-template>
+  </p-panel>  
+</div>
+

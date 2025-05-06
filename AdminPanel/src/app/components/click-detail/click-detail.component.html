@@ -1,0 +1,51 @@
+<div class="click-detail-container">
+  <button (click)="goBack()" class="btn btn-back">
+    ← Back to Dashboard
+  </button>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading click details...</p>
+  </div>
+
+  <div class="click-detail" *ngIf="!loading">
+    <h2>Click Detail</h2>
+    <form [formGroup]="clickForm">
+      <div class="form-group">
+        <label for="userId">User ID:</label>
+        <input id="userId" formControlName="userId" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="storeId">Store ID:</label>
+        <input id="storeId" formControlName="storeId" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="affiliateLink">Affiliate Link:</label>
+        <input id="affiliateLink" formControlName="affiliateLink" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="date">Date:</label>
+        <input id="date" formControlName="date" type="text" [disabled]="true" />
+      </div>
+
+      <div class="form-group">
+        <label for="click_hash">Click Hash:</label>
+        <input id="click_hash" formControlName="click_hash" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="cashback_percentage">Cashback Percentage:</label>
+        <input id="cashback_percentage" formControlName="cashback_percentage" type="number" />
+      </div>
+
+      <div class="actions">
+        <button (click)="save()" type="button">Save Changes</button>
+        <button (click)="delete()" type="button">Delete Click</button>
+        <button (click)="goBack()" type="button">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

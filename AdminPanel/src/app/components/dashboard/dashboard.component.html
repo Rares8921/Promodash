@@ -1,0 +1,252 @@
+<div class="navigation-buttons">
+  <button *ngIf="showCharts" (click)="toggleScene('info')">⬅ Info</button>
+  <button *ngIf="!showCharts" (click)="toggleScene('charts')">Charts ➡</button>
+</div>
+
+<div *ngIf="!showCharts" class="dashboard-container">
+  <h1>Admin Dashboard - Info</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Users</h3>
+      <p>{{ totalUsers }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Requests</h3>
+      <p>{{ totalRequests }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Clicks</h3>
+      <p>{{ totalClicks }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Withdrawals</h3>
+      <p>{{ totalWithdrawals }}</p>
+    </div>
+  </div>
+
+  <label>Page Size:
+    <select (change)="setPageSizeFromEvent($event)">
+      <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+    </select>
+  </label>
+  
+   
+  <!-- USERS -->
+  <div class="table-section">
+    <h2 (click)="toggleTable('users')">
+      Users Overview 
+      <button>
+        <span [ngClass]="{'arrow-down': showUsers, 'arrow-right': !showUsers}"></span>
+      </button>
+    </h2>
+
+    <div *ngIf="showUsers">
+      <div class="table-controls">
+        <input type="text" placeholder="Search users..." (input)="onSearch('users', getInputValue($event))">
+        <button (click)="changePage('users', 'prev')">⏪ Prev</button>
+        <span>Page {{ currentPage['users'] }} / {{ getMaxPage('users') }}</span>
+        <button (click)="changePage('users', 'next')">Next ⏩</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Balance</th>
+            <th>Pending Credits</th>
+            <th>Name</th>
+            <th>Invite Code</th>
+            <th>Invited By</th>
+            <th>Pending Invite Bonus</th>
+            <th>Invite Count</th>
+            <th>Earned Bonus</th>
+            <th>Verified</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of paginatedUsers" (click)="goToUserDetail(user.$id)" style="cursor: pointer;">
+            <td>{{ user.email }}</td>
+            <td>{{ user.Balance }}</td>
+            <td>{{ user.Pending_Credits }}</td>
+            <td>{{ user.Name }}</td>
+            <td>{{ user.Invite_Code }}</td>
+            <td>{{ user.Invited_By }}</td>
+            <td>{{ user.Pending_Invite_Bonus }}</td>
+            <td>{{ user.Invite_Count }}</td>
+            <td>{{ user.Earned_Bonus }}</td>
+            <td>{{ user.Verified }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REQUESTS -->
+  <div class="table-section">
+    <h2 (click)="toggleTable('requests')">
+      Requests Overview 
+      <button>
+        <span [ngClass]="{'arrow-down': showRequests, 'arrow-right': !showRequests}"></span>
+      </button>
+    </h2>
+
+    <div *ngIf="showRequests">
+      <div class="table-controls">
+        <input type="text" placeholder="Search requests..." (input)="onSearch('requests', getInputValue($event))">
+        <button (click)="changePage('requests', 'prev')">⏪ Prev</button>
+        <span>Page {{ currentPage['requests'] }} / {{ getMaxPage('requests') }}</span>
+        <button (click)="changePage('requests', 'next')">Next ⏩</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Description</th>
+            <th>Date Created</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let req of paginatedRequests" (click)="goToRequestDetail(req.$id)" style="cursor: pointer;">
+            <td>{{ req.email }}</td>
+            <td>{{ req.subject }}</td>
+            <td>{{ req.description }}</td>
+            <td>{{ req.dateCreated }}</td>
+            <td>{{ req.status }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CLICKS -->
+  <div class="table-section">
+    <h2 (click)="toggleTable('clicks')">
+      Clicks Overview 
+      <button>
+        <span [ngClass]="{'arrow-down': showClicks, 'arrow-right': !showClicks}"></span>
+      </button>
+    </h2>
+
+    <div *ngIf="showClicks">
+      <div class="table-controls">
+        <input type="text" placeholder="Search clicks..." (input)="onSearch('clicks', getInputValue($event))">
+        <button (click)="changePage('clicks', 'prev')">⏪ Prev</button>
+        <span>Page {{ currentPage['clicks'] }} / {{ getMaxPage('clicks') }}</span>
+        <button (click)="changePage('clicks', 'next')">Next ⏩</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Store ID</th>
+            <th>Affiliate Link</th>
+            <th>Date</th>
+            <th>Click Hash</th>
+            <th>Cashback Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let click of paginatedClicks" (click)="goToClickDetail(click.$id)" style="cursor: pointer;">
+            <td>{{ click.userId }}</td>
+            <td>{{ click.storeId }}</td>
+            <td>{{ click.affiliateLink }}</td>
+            <td>{{ click.date }}</td>
+            <td>{{ click.click_hash }}</td>
+            <td>{{ click.cashback_percentage }} %</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WITHDRAWALS -->
+  <div class="table-section">
+    <h2 (click)="toggleTable('withdrawals')">
+      Withdrawals Overview 
+      <button>
+        <span [ngClass]="{'arrow-down': showWithdrawals, 'arrow-right': !showWithdrawals}"></span>
+      </button>
+    </h2>
+
+    <div *ngIf="showWithdrawals">
+      <div class="table-controls">
+        <input type="text" placeholder="Search withdrawals..." (input)="onSearch('withdrawals', getInputValue($event))">
+        <button (click)="changePage('withdrawals', 'prev')">⏪ Prev</button>
+        <span>Page {{ currentPage['withdrawals'] }} / {{ getMaxPage('withdrawals') }}</span>
+        <button (click)="changePage('withdrawals', 'next')">Next ⏩</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Amount</th>
+            <th>Payment Method</th>
+            <th>Status</th>
+            <th>Transaction ID</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let wd of paginatedWithdrawals" (click)="goToWithdrawalDetail(wd.$id)" style="cursor: pointer;">
+            <td>{{ wd.userId }}</td>
+            <td>{{ wd.amount }}</td>
+            <td>{{ wd.IBAN }}</td>
+            <td>{{ wd.status }}</td>
+            <td>{{ wd.transactionId }}</td>
+            <td>{{ wd.createdAt }}</td>
+            <td>{{ wd.updatedAt }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div>
+
+<div *ngIf="showCharts" class="dashboard-container">
+  <h1>Admin Dashboard - Charts</h1>
+
+  <div class="period-buttons">
+    <button (click)="changePeriod(7)">Last 7 Days</button>
+    <button (click)="changePeriod(30)">Last 30 Days</button>
+    <button (click)="changePeriod(90)">Last 90 Days</button>
+  </div>
+
+  <div class="chart-section">
+    <h2>Clicks (Change: {{ growthStats.click | number:'1.0-2' }}%)</h2>
+    <button (click)="exportCSV('click')">Export Click Data</button>
+    <canvas baseChart
+      [datasets]="clickChartData.datasets"
+      [labels]="clickChartData.labels"
+      [chartType]="'line'">
+    </canvas>
+  </div>
+
+  <div class="chart-section">
+    <h2>Sales (Change: {{ growthStats.sales | number:'1.0-2' }}%)</h2>
+    <button (click)="exportCSV('sales')">Export Sales Data</button>
+    <canvas baseChart
+      [datasets]="salesChartData.datasets"
+      [labels]="salesChartData.labels"
+      [chartType]="'line'">
+    </canvas>
+  </div>
+
+  <div class="chart-section">
+    <h2>Withdrawals (Change: {{ growthStats.withdrawal | number:'1.0-2' }}%)</h2>
+    <button (click)="exportCSV('withdrawal')">Export Withdrawal Data</button>
+    <canvas baseChart
+      [datasets]="withdrawalChartData.datasets"
+      [labels]="withdrawalChartData.labels"
+      [chartType]="'line'">
+    </canvas>
+  </div>
+</div>

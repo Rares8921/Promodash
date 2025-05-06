@@ -1,0 +1,63 @@
+<div class="request-detail-container">
+  <button (click)="goBack()" class="btn btn-back">
+    ← Back to Dashboard
+  </button>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading request details...</p>
+  </div>
+
+  <div class="request-detail" *ngIf="!loading">
+    <h2>Request Detail</h2>
+    <form [formGroup]="requestForm">
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input id="email" formControlName="email" type="email" />
+      </div>
+  
+      <div class="form-group">
+        <label for="subject">Subject:</label>
+        <input id="subject" formControlName="subject" type="text" />
+      </div>
+  
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea id="description" formControlName="description"></textarea>
+      </div>
+  
+      <div class="form-group">
+        <label for="status">Status:</label>
+        <input id="status" formControlName="status" type="text" />
+      </div>
+
+      <div *ngIf="requestData?.image" class="image-section">
+        <h3>Attached Image:</h3>
+        <img [src]="getFullBase64(requestData.image)" alt="Request Image" class="attached-image" />
+      </div>
+  
+      <div class="actions">
+        <button (click)="save()" type="button">Save Changes</button>
+        <button (click)="delete()" type="button">Delete Request</button>
+        <button (click)="goBack()" type="button">Cancel</button>
+      </div>
+    </form>
+  </div>
+  
+  <div class="email-section" *ngIf="!loading">
+    <h3>Notify User</h3>
+    <form [formGroup]="emailForm" (ngSubmit)="sendEmailToUser()">
+      <div class="form-group">
+        <label for="emailSubject">Subject:</label>
+        <input id="emailSubject" formControlName="subject" type="text" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="emailBody">Body:</label>
+        <textarea id="emailBody" formControlName="body" rows="4" required></textarea>
+      </div>
+      
+      <button type="submit" [disabled]="emailForm.invalid">Send Email</button>
+    </form>
+  </div>
+</div>
