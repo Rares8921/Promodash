@@ -1,0 +1,114 @@
+.container {
+min-height: 100vh;
+background-color: #F9FAFC;
+}
+
+.dark {
+background-color: #121212;
+color: white;
+}
+
+.header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background-color: #2575fc;
+padding: 50px 20px 20px;
+position: relative;
+}
+
+.headerDark {
+background-color: #1E1E1E;
+}
+
+.backButton {
+background: none;
+border: none;
+font-size: 22px;
+color: white;
+cursor: pointer;
+}
+
+.headerTitle {
+font-size: 22px;
+font-weight: bold;
+text-align: center;
+flex: 1;
+margin-left: -15px;
+color: white;
+}
+
+.notificationIcon {
+font-size: 20px;
+position: absolute;
+right: 20px;
+top: 56px;
+}
+
+.scrollContent {
+padding-bottom: 30px;
+}
+
+.sectionContainer {
+display: flex;
+align-items: center;
+padding: 12px 20px;
+background-color: #F2F2F2;
+}
+
+.sectionDark {
+background-color: #1E1E1E;
+}
+
+.sectionBold {
+background-color: #EAEAEA;
+}
+
+.sectionIcon {
+font-size: 18px;
+color: #666;
+}
+
+.sectionTitle {
+font-size: 16px;
+font-weight: 500;
+color: #666;
+margin-left: 8px;
+}
+
+.sectionTitleBold {
+font-weight: bold;
+color: #000;
+}
+
+.optionItem {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 15px 20px;
+border-bottom: 1px solid #eee;
+cursor: pointer;
+}
+
+.optionItemDark {
+background-color: #1E1E1E;
+}
+
+.optionText {
+font-size: 16px;
+color: #333;
+}
+
+.chevron {
+font-size: 20px;
+color: #999;
+}
+
+.textGold {
+color: #FFD700;
+}
+
+.textLight {
+color: #ddd;
+}
+  

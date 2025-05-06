@@ -1,0 +1,107 @@
+.container {
+padding: 20px;
+background-color: #F9FAFC;
+min-height: 100vh;
+}
+
+.dark {
+background-color: #121212;
+color: white;
+}
+
+.header {
+display: flex;
+align-items: center;
+justify-content: center;
+background-color: #2575fc;
+padding: 50px 20px 20px;
+border-bottom-left-radius: 20px;
+border-bottom-right-radius: 20px;
+position: relative;
+}
+
+.headerDark {
+background-color: #1E1E1E;
+}
+
+.backButton {
+position: absolute;
+left: 15px;
+top: 50px;
+background: none;
+border: none;
+font-size: 22px;
+color: white;
+cursor: pointer;
+}
+
+.headerTitle {
+font-size: 20px;
+font-weight: bold;
+color: white;
+text-align: center;
+}
+
+.scrollContent {
+padding: 20px;
+}
+
+.mainTitle {
+font-size: 22px;
+font-weight: bold;
+margin-bottom: 10px;
+color: #333;
+}
+
+.paragraph {
+font-size: 16px;
+color: #555;
+margin-bottom: 15px;
+line-height: 22px;
+}
+
+.subTitle {
+font-size: 18px;
+font-weight: bold;
+color: #444;
+margin-top: 15px;
+}
+
+.listItem {
+font-size: 16px;
+color: #666;
+margin-top: 8px;
+}
+
+.supportButton {
+background-color: #2575fc;
+padding: 12px;
+border-radius: 25px;
+margin-top: 25px;
+width: 100%;
+border: none;
+cursor: pointer;
+}
+
+.supportButtonDark {
+background-color: #333;
+}
+
+.supportButtonText {
+font-size: 16px;
+font-weight: bold;
+color: white;
+}
+
+.textGold {
+color: #FFD700;
+}
+
+.textMuted {
+color: #bbb;
+}
+
+.textLight {
+color: #ddd;
+}
+  

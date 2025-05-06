@@ -1,0 +1,56 @@
+.container {
+background-color: #F9FAFC;
+min-height: 100vh;
+}
+
+.dark {
+background-color: #121212;
+color: white;
+}
+
+.header {
+display: flex;
+align-items: center;
+padding: 18px 20px;
+border-bottom: 1px solid #ddd;
+background-color: #fff;
+}
+
+.headerDark {
+background-color: #1E1E1E;
+border-color: #333;
+}
+
+.backButton {
+background: none;
+border: none;
+font-size: 22px;
+cursor: pointer;
+margin-right: 10px;
+}
+
+.headerTitle {
+font-size: 20px;
+font-weight: bold;
+color: #000;
+}
+
+.scrollContent {
+padding: 25px;
+padding-bottom: 40px;
+}
+
+.conditionText {
+font-size: 16px;
+color: #333;
+line-height: 24px;
+margin-bottom: 15px;
+}
+
+.textLight {
+color: #ddd;
+}
+
+.textGold {
+color: #FFD700;
+}

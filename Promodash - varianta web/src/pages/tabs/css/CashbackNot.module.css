@@ -1,0 +1,87 @@
+.container {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #F9FAFC;
+}
+
+.dark {
+  background-color: #121212;
+  color: white;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background-color: #2575fc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.headerDark {
+  background-color: #1E1E1E;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
+.scrollContent {
+  padding: 20px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.paragraph {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.submitRequestButton {
+  background-color: #2575fc;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  margin-top: 20px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+
+.submitRequestButtonDark {
+  background-color: #333;
+}
+
+.submitRequestText {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.textLight {
+  color: #ddd;
+}
+
+.textMuted {
+  color: #bbb;
+}
+
+.textGold {
+  color: #FFD700;
+}

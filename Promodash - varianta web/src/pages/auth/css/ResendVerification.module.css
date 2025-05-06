@@ -1,0 +1,260 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 30px;
+  background-color: #f7f9fc;
+  transition: background-color 0.3s ease;
+}
+
+.container.dark {
+  background-color: #121212;
+}
+
+.contentContainer {
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.8s ease-out, slideUp 0.8s ease-out;
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.iconContainer {
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #4a6fff, #2e4bff);
+}
+
+.iconContainer.dark {
+  background: linear-gradient(to right, #ffd700, #ffa500);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2e4bff;
+  text-align: center;
+}
+
+.title.dark {
+  color: #ffd700;
+}
+
+.subtitle {
+  font-size: 16px;
+  text-align: center;
+  max-width: 80%;
+  line-height: 22px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.subtitle.dark {
+  color: #bbb;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 15px;
+  margin-bottom: 25px;
+  height: 55px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0);
+  transition: all 0.3s ease;
+}
+
+.inputContainer.dark {
+  background-color: #222;
+  border-color: #333;
+}
+
+.inputContainer.focused {
+  border-color: #2e4bff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.inputContainer.focused.dark {
+  border-color: #ffd700;
+}
+
+.inputIcon {
+  margin-right: 12px;
+  color: #aaa;
+  font-size: 20px;
+}
+
+.inputIcon.focused {
+  color: #2e4bff;
+}
+
+.inputIcon.focused.dark {
+  color: #ffd700;
+}
+
+.input {
+  flex: 1;
+  height: 50px;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  color: #333;
+  outline: none;
+}
+
+.input.dark {
+  color: #fff;
+}
+
+.input::placeholder {
+  color: #aaa;
+}
+
+.input.dark::placeholder {
+  color: #777;
+}
+
+.buttonContainer {
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: pulse 2s infinite;
+}
+
+.resendButton {
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  width: 100%;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(to right, #4a6fff, #2e4bff);
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resendButton:hover {
+  opacity: 0.9;
+}
+
+.resendButton.dark {
+  background: linear-gradient(to right, #ffd700, #ffa500);
+}
+
+.resendButton:disabled {
+  background: linear-gradient(to right, #ccc, #aaa);
+  cursor: not-allowed;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingIcon {
+  margin-right: 8px;
+  animation: spin 1s linear infinite;
+}
+
+.resendButtonText {
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.backContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.backIcon {
+  margin-right: 5px;
+  color: #2e4bff;
+  font-size: 18px;
+}
+
+.backIcon.dark {
+  color: #ffd700;
+}
+
+.backToLogin {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2e4bff;
+}
+
+.backToLogin.dark {
+  color: #ffd700;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animateIn {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}

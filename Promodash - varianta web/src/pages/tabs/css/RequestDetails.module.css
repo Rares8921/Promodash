@@ -1,0 +1,122 @@
+.safeContainer {
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+}
+
+.lightContainer {
+background-color: #f9fafc;
+}
+
+.darkContainer {
+background-color: #121212;
+}
+
+/* HEADER */
+.header {
+padding-top: 50px;
+padding-bottom: 15px;
+padding-left: 20px;
+padding-right: 20px;
+border-radius: 15px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 10px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.lightHeader {
+background-color: #2575fc;
+}
+
+.darkHeader {
+background-color: #1e1e1e;
+}
+
+.scrollContent {
+flex-grow: 1;
+padding: 20px;
+}
+
+/* TITLU */
+.title {
+font-size: 22px;
+font-weight: bold;
+text-align: center;
+}
+
+.lightTitle {
+color: #fff;
+}
+
+.darkTitle {
+color: #ffd700;
+}
+
+/* DATA MESAJULUI */
+.date {
+font-size: 14px;
+text-align: center;
+margin-bottom: 15px;
+}
+
+.lightDate {
+color: #666;
+}
+
+.darkDate {
+color: #bbb;
+}
+
+/* BOX MESAJ - Ocupă toată suprafața disponibilă */
+.messageBox {
+flex: 1;
+padding: 18px;
+border-radius: 12px;
+margin-bottom: 15px;
+box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.lightMessageBox {
+background-color: #fff;
+}
+
+.darkMessageBox {
+background-color: #1e1e1e;
+}
+
+/* SCROLLVIEW IN INTERIORUL BOX-ULUI */
+.textScroll {
+flex: 1;
+}
+
+.description {
+font-size: 16px;
+line-height: 22px;
+text-align: left;
+}
+
+.lightDescription {
+color: #333;
+}
+
+.darkDescription {
+color: #ddd;
+}
+
+.image {
+width: 100%;
+height: auto;
+border-radius: 12px;
+margin-top: 15px;
+align-self: center;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.errorText {
+text-align: center;
+margin-top: 20px;
+color: #ff4d4d;
+font-size: 16px;
+}

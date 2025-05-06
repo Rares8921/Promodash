@@ -1,0 +1,149 @@
+.container {
+  padding: 20px;
+}
+
+.dark {
+  background-color: #121212;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2575fc;
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  height: 140px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: white;
+  cursor: pointer;
+}
+
+.headerTitle {
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  flex: 1;
+}
+
+.walletIcon {
+  font-size: 24px;
+  margin-left: auto;
+}
+
+.balanceCard {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eaeaea;
+  width: 90%;
+  margin: -40px auto 30px auto;
+  text-align: center;
+}
+
+.balanceCardDark {
+  background-color: #1E1E1E;
+  border-color: #333;
+}
+
+.balanceLabel {
+  font-size: 16px;
+  color: #666;
+}
+
+.balanceAmount {
+  font-size: 38px;
+  font-weight: bold;
+  color: #2575fc;
+  margin: 10px 0;
+}
+
+.pendingLabel {
+  font-size: 14px;
+  color: #777;
+  margin-top: 10px;
+}
+
+.pendingAmount {
+  font-size: 22px;
+  font-weight: bold;
+  color: #444;
+}
+
+.divider {
+  width: 80%;
+  height: 1px;
+  background-color: #ddd;
+  margin: 10px auto;
+}
+
+.dividerDark {
+  background-color: #444;
+}
+
+.textMuted {
+  color: #bbb;
+}
+
+.textGold {
+  color: #FFD700;
+}
+
+.textLight {
+  color: #ddd;
+}
+
+.emptyState {
+  text-align: center;
+  margin-top: 70px;
+  padding: 0 20px;
+}
+
+.emptyIcon {
+  font-size: 50px;
+  color: #999;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.emptyText {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.chooseStoreButton {
+  background-color: #2575fc;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  margin-top: 20px;
+  box-shadow: 0 3px 5px rgba(37, 117, 252, 0.3);
+  cursor: pointer;
+}
+
+.chooseStoreButtonDark {
+  background-color: #333;
+  box-shadow: none;
+}
+
+.chooseStoreText {
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.loadingText {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+}

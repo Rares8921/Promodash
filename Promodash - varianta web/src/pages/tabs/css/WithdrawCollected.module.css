@@ -1,0 +1,117 @@
+.container {
+background-color: #F9FAFC;
+min-height: 100vh;
+}
+
+.dark {
+background-color: #121212;
+color: white;
+}
+
+.header {
+display: flex;
+align-items: center;
+padding: 50px 20px 20px;
+background-color: #2575fc;
+}
+
+.headerDark {
+background-color: #1E1E1E;
+}
+
+.backButton {
+background: none;
+border: none;
+font-size: 22px;
+color: white;
+cursor: pointer;
+}
+
+.headerTitle {
+font-size: 20px;
+font-weight: bold;
+color: white;
+text-align: center;
+flex: 1;
+margin-left: -25px;
+}
+
+.scrollContent {
+padding: 20px;
+}
+
+.sectionText {
+font-size: 16px;
+color: #444;
+margin: 10px 0;
+}
+
+.stepContainer {
+display: flex;
+align-items: flex-start;
+margin: 8px 0;
+gap: 8px;
+}
+
+.stepNumber {
+font-size: 18px;
+font-weight: bold;
+color: #2575fc;
+}
+
+.stepText {
+font-size: 16px;
+color: #333;
+flex: 1;
+}
+
+.noteText {
+font-size: 14px;
+color: #777;
+text-align: center;
+margin: 15px 0;
+}
+
+.feedbackContainer {
+text-align: center;
+margin-top: 20px;
+}
+
+.feedbackText {
+font-size: 16px;
+font-weight: bold;
+margin-bottom: 10px;
+}
+
+.buttonRow {
+display: flex;
+justify-content: center;
+gap: 20px;
+}
+
+.feedbackButton {
+background-color: #2575fc;
+color: white;
+padding: 8px 20px;
+border-radius: 20px;
+font-weight: bold;
+font-size: 14px;
+border: none;
+cursor: pointer;
+}
+
+.feedbackButtonDark {
+background-color: #333;
+}
+
+.textMuted {
+color: #bbb;
+}
+
+.textLight {
+color: #ddd;
+}
+
+.textGold {
+color: #FFD700;
+}

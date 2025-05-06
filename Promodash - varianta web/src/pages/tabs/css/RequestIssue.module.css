@@ -1,0 +1,224 @@
+.container {
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+background-color: #f9fafc;
+}
+
+.darkContainer {
+background-color: #121212;
+}
+
+.header {
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 20px;
+padding-top: 50px;
+padding-bottom: 20px;
+background-color: #2575fc;
+}
+
+.darkHeader {
+background-color: #1e1e1e;
+}
+
+.backButton {
+padding: 5px;
+background: none;
+border: none;
+cursor: pointer;
+}
+
+.icon {
+font-family: "Material Icons";
+font-size: 26px;
+color: #fff;
+}
+
+.headerTitle {
+font-size: 20px;
+font-weight: bold;
+color: #fff;
+text-align: center;
+flex: 1;
+margin-left: -10px;
+}
+
+.darkHeaderTitle {
+color: #ffd700;
+}
+
+.content {
+padding: 20px;
+padding-bottom: 40px;
+}
+
+.title {
+font-size: 22px;
+font-weight: bold;
+color: #333;
+margin-bottom: 15px;
+}
+
+.darkTitle {
+color: #ffd700;
+}
+
+.paragraph {
+font-size: 16px;
+color: #444;
+margin-bottom: 10px;
+line-height: 22px;
+}
+
+.darkParagraph {
+color: #ddd;
+}
+
+.lightParagraph {
+color: #bbb;
+}
+
+.subtitle {
+font-size: 18px;
+font-weight: bold;
+color: #333;
+margin-top: 20px;
+margin-bottom: 8px;
+}
+
+.darkSubtitle {
+color: #ddd;
+}
+
+.bulletItem {
+display: flex;
+flex-direction: row;
+align-items: center;
+margin-bottom: 10px;
+}
+
+.bullet {
+font-size: 6px;
+color: #333;
+margin-right: 6px;
+}
+
+.darkBullet {
+color: #ffd700;
+}
+
+.bulletText {
+font-size: 16px;
+color: #444;
+margin-left: 6px;
+}
+
+.darkBulletText {
+color: #bbb;
+}
+
+.link {
+color: #2575fc;
+font-weight: bold;
+text-decoration: none;
+}
+
+.darkLink {
+color: #ffd700;
+}
+
+.feedbackContainer {
+margin-top: 20px;
+text-align: center;
+}
+
+.feedbackTitle {
+font-size: 16px;
+font-weight: bold;
+color: #333;
+margin-bottom: 10px;
+}
+
+.darkFeedbackTitle {
+color: #ddd;
+}
+
+.feedbackButtons {
+display: flex;
+flex-direction: row;
+justify-content: center;
+}
+
+.feedbackButton {
+display: flex;
+flex-direction: row;
+align-items: center;
+background-color: #2575fc;
+padding: 8px 20px;
+border-radius: 20px;
+margin: 0 10px;
+border: none;
+cursor: pointer;
+}
+
+.darkFeedbackButton {
+background-color: #333;
+}
+
+.noButton {
+background-color: #ff4d4d;
+}
+
+.darkNoButton {
+background-color: #800000;
+}
+
+.feedbackIcon {
+font-family: "Material Icons";
+font-size: 18px;
+color: #ffd700;
+margin-right: 5px;
+}
+
+.feedbackButtonText {
+color: #fff;
+font-size: 16px;
+}
+
+.darkFeedbackButtonText {
+color: #ffd700;
+}
+
+.returnToTop {
+display: flex;
+flex-direction: row;
+align-items: center;
+justify-content: center;
+margin-top: 20px;
+background: none;
+border: none;
+cursor: pointer;
+}
+
+.upIcon {
+font-family: "Material Icons";
+font-size: 20px;
+color: #2575fc;
+}
+
+.darkUpIcon {
+color: #ffd700;
+}
+
+.returnToTopText {
+font-size: 16px;
+font-weight: bold;
+color: #2575fc;
+margin-left: 5px;
+}
+
+.darkReturnToTopText {
+color: #ffd700;
+}

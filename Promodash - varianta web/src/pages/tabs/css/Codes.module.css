@@ -1,0 +1,156 @@
+.container {
+background-color: #F9FAFC;
+min-height: 100vh;
+}
+
+.dark {
+background-color: #121212;
+color: white;
+}
+
+.headerWrapper {
+background-color: #2575fc;
+padding: 50px 20px 25px;
+border-bottom-left-radius: 20px;
+border-bottom-right-radius: 20px;
+}
+
+.headerDark {
+background-color: #1E1E1E;
+}
+
+.header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.backButton {
+background: none;
+border: none;
+font-size: 24px;
+color: white;
+cursor: pointer;
+}
+
+.headerTitle {
+font-size: 22px;
+font-weight: bold;
+color: white;
+text-align: center;
+flex: 1;
+}
+
+.helpIcon {
+font-size: 24px;
+margin-left: auto;
+}
+
+.content {
+padding: 20px;
+}
+
+.descriptionText {
+font-size: 14px;
+color: #666;
+text-align: center;
+margin-bottom: 15px;
+}
+
+.inputContainer {
+display: flex;
+border: 1px solid #ddd;
+border-radius: 8px;
+overflow: hidden;
+}
+
+.inputContainerDark {
+border-color: #444;
+}
+
+.input {
+flex: 1;
+padding: 12px 15px;
+font-size: 16px;
+border: none;
+outline: none;
+background-color: #fff;
+color: #333;
+}
+
+.inputDark {
+background-color: #1E1E1E;
+color: white;
+}
+
+.applyButton {
+background-color: #ffcc00;
+padding: 0 20px;
+border: none;
+cursor: pointer;
+display: flex;
+align-items: center;
+}
+
+.applyButtonDark {
+background-color: #333;
+}
+
+.applyButtonText {
+font-size: 16px;
+font-weight: bold;
+color: #000;
+}
+
+.codesSection {
+margin-top: 25px;
+}
+
+.activeTitle {
+font-size: 16px;
+font-weight: bold;
+color: #333;
+text-align: center;
+}
+
+.divider {
+height: 2px;
+background-color: #000;
+margin: 5px auto;
+width: 25%;
+}
+
+.dividerDark {
+background-color: #333;
+}
+
+.emptyState {
+text-align: center;
+margin-top: 30px;
+padding: 0 20px;
+}
+
+.emptyIcon {
+display: block;
+font-size: 50px;
+margin-bottom: 10px;
+color: #bbb;
+}
+
+.emptyText {
+font-size: 14px;
+line-height: 20px;
+color: #777;
+}
+
+.textMuted {
+color: #bbb;
+}
+
+.textLight {
+color: #ddd;
+}
+
+.textGold {
+color: #FFD700;
+}
