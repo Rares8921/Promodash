@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant StoreDetailsScreen
+    participant FavoritesContext
+    participant API
+    participant ThemeContext
+    participant LanguageContext
+    StoreDetailsScreen->>FavoritesContext: Check favorite stores
+    FavoritesContext->>API: Fetch store details
+    API-->>FavoritesContext: Return store details
+    StoreDetailsScreen->>ThemeContext: Get theme
+    ThemeContext-->>StoreDetailsScreen: Return theme
+    StoreDetailsScreen->>LanguageContext: Get translations
+    LanguageContext-->>StoreDetailsScreen: Return translations
+    StoreDetailsScreen->>API: Fetch affiliate link
+    API-->>StoreDetailsScreen: Return affiliate link
+    StoreDetailsScreen->>CashbackCalculator: Calculate cashback
+    CashbackCalculator-->>StoreDetailsScreen: Return cashback details

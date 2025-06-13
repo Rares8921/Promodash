@@ -12,6 +12,8 @@ export class WithdrawalDetailComponent implements OnInit {
   withdrawalForm: FormGroup;
   withdrawalId: string;
   loading = true;
+  showHistory: boolean = false;
+  historyLogs: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -53,5 +55,23 @@ export class WithdrawalDetailComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.fetchHistoryLogs();
+    }
+  }
+
+  fetchHistoryLogs(): void {
+    this.withdrawalService.getWithdrawalHistory(this.withdrawalId).then(
+      (logs: any[]) => {
+        this.historyLogs = logs;
+      },
+      (error: any) => {
+        console.error('Error fetching history logs:', error);
+      }
+    );
   }
 }

@@ -6,6 +6,24 @@
 <div *ngIf="!showCharts" class="dashboard-container">
   <h1>Admin Dashboard - Info</h1>
 
+  <div class="backup-container" *ngIf="isAdmin">
+    <button (click)="toggleBackupMenu()" class="btn-backup-toggle">
+      📦 Backup Now
+    </button>
+
+    <div *ngIf="showBackupMenu" class="backup-dropdown">
+      <div class="dropdown-header">
+        <span>📁 Download Backup</span>
+        <button (click)="closeBackupMenu()" class="close-btn">×</button>
+      </div>
+      <ul class="dropdown-list">
+        <li><button (click)="downloadBackup('json')">Download JSON</button></li>
+        <li><button (click)="downloadBackup('csv')">Download CSV</button></li>
+        <li><button (click)="downloadBackup('sql')">Download SQL</button></li>
+      </ul>
+    </div>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card">
       <h3>Users</h3>
@@ -22,6 +40,10 @@
     <div class="stat-card">
       <h3>Withdrawals</h3>
       <p>{{ totalWithdrawals }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Promo Codes</h3>
+      <p>{{ totalPromoCodes }}</p>
     </div>
   </div>
 
@@ -47,6 +69,7 @@
         <button (click)="changePage('users', 'prev')">⏪ Prev</button>
         <span>Page {{ currentPage['users'] }} / {{ getMaxPage('users') }}</span>
         <button (click)="changePage('users', 'next')">Next ⏩</button>
+        <button (click)="exportData('users')">Export Users</button>
       </div>
 
       <table>
@@ -81,6 +104,51 @@
       </table>
     </div>
   </div>
+  
+  <!-- PROMO CODES -->
+  <div class="table-section">
+    <h2 (click)="toggleTable('promoCodes')">
+      Promo Codes Overview 
+      <button>
+        <span [ngClass]="{'arrow-down': showPromoCodes, 'arrow-right': !showPromoCodes}"></span>
+      </button>
+    </h2>
+
+    <div *ngIf="showPromoCodes">
+      <div class="table-controls">
+        <input type="text" placeholder="Search promo codes..." (input)="onSearch('promoCodes', getInputValue($event))">
+        <button (click)="changePage('promoCodes', 'prev')">⏪ Prev</button>
+        <span>Page {{ currentPage['promoCodes'] }} / {{ getMaxPage('promoCodes') }}</span>
+        <button (click)="changePage('promoCodes', 'next')">Next ⏩</button>
+        <button (click)="openCreatePromoModal()" class="create-promo-button">➕ Add New Promo Code</button>
+        <button (click)="exportData('promoCodes')">Export Promo Codes</button>
+        <button (click)="deleteExpiredCodes()">Delete Expired Codes</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Boost (%)</th>
+            <th>Expiration</th>
+            <th>Max Uses</th>
+            <th>Used</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let code of paginatedPromoCodes" (click)="goToPromoDetail(code.$id)" style="cursor: pointer;">
+            <td>{{ code.code }}</td>
+            <td>{{ code.percentageBoost }}</td>
+            <td>{{ code.expirationDate | date:'HH:mm:ss dd.MM.yyyy': 'UTC' }}</td>
+            <td>{{ code.maxUses }}</td>
+            <td>{{ code.uses }}</td>
+            <td>{{ code.expired ? 'Expired' : 'Active' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- REQUESTS -->
   <div class="table-section">
@@ -97,6 +165,7 @@
         <button (click)="changePage('requests', 'prev')">⏪ Prev</button>
         <span>Page {{ currentPage['requests'] }} / {{ getMaxPage('requests') }}</span>
         <button (click)="changePage('requests', 'next')">Next ⏩</button>
+        <button (click)="exportData('requests')">Export Requests</button>
       </div>
 
       <table>
@@ -137,6 +206,7 @@
         <button (click)="changePage('clicks', 'prev')">⏪ Prev</button>
         <span>Page {{ currentPage['clicks'] }} / {{ getMaxPage('clicks') }}</span>
         <button (click)="changePage('clicks', 'next')">Next ⏩</button>
+        <button (click)="exportData('clicks')">Export Clicks</button>
       </div>
 
       <table>
@@ -179,6 +249,7 @@
         <button (click)="changePage('withdrawals', 'prev')">⏪ Prev</button>
         <span>Page {{ currentPage['withdrawals'] }} / {{ getMaxPage('withdrawals') }}</span>
         <button (click)="changePage('withdrawals', 'next')">Next ⏩</button>
+        <button (click)="exportData('withdrawals')">Export Withdrawals</button>
       </div>
 
       <table>
@@ -208,7 +279,42 @@
     </div>
   </div>
 
+  <div *ngIf="showNotification" class="notification">
+    {{ notificationMessage }}
+  </div>
 
+  <div class="modal-backdrop" *ngIf="showPromoModal">
+    <div class="modal-box" (clickOutside)="closePromoModal()">
+      <h2>Create Promo Code</h2>
+      <form #promoForm="ngForm" (ngSubmit)="submitPromoCode(promoForm)">
+        <label>Code:
+          <input type="text" maxlength="10" [(ngModel)]="newPromo.code" name="code" required />
+        </label>
+
+        <label>Boost (%):
+          <input type="number" min="0" max="100" [(ngModel)]="newPromo.percentageBoost" name="percentageBoost" required />
+        </label>
+
+        <label>Expiration Date:
+          <input type="date" [(ngModel)]="newPromo.expirationDateDate" name="expirationDateDate" required />
+        </label>
+
+        <label>Expiration Time:
+          <input type="time" [(ngModel)]="newPromo.expirationDateTime" name="expirationDateTime" required />
+        </label>
+
+        <label>Max Uses:
+          <input type="number" max="999999" [(ngModel)]="newPromo.maxUses" name="maxUses" required />
+        </label>
+
+        <div class="modal-actions">
+          <button type="submit" [disabled]="!promoForm.valid">Create</button>
+          <button type="button" (click)="closePromoModal()">Cancel</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
 </div>
 
 <div *ngIf="showCharts" class="dashboard-container">

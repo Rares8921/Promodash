@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Card } from 'src/app/interfaces/card.model';
 import { CardService } from 'src/app/services/card.service';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 import { Router } from '@angular/router';
+import { HostListener } from '@angular/core';
+import { PromoCodeService } from '../../services/promo-code.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,22 +12,27 @@ import { Router } from '@angular/router';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
+  [key: string]: any;
   showCharts = false;  
 
   showUsers = false;
   showRequests = false;
   showClicks = false;
   showWithdrawals = false;
+  showBackupMenu = false;
+  showPromoModal = false;
 
   users: any[] = []; 
   requests: any[] = [];
   clicks: any[] = [];
   withdrawals: any[] = [];
+  promoCodes: any[] = [];
 
   totalUsers = 0;
   totalRequests = 0;
   totalClicks = 0;
   totalWithdrawals = 0;
+  totalPromoCodes = 0;
   loading = true;
 
   selectedPeriod = 30;
@@ -36,29 +42,44 @@ export class DashboardComponent implements OnInit {
   salesChartData: any = { labels: [], datasets: [] };
   withdrawalChartData: any = { labels: [], datasets: [] };
 
-  currentPage: Record<'users' | 'requests' | 'clicks' | 'withdrawals', number> = {
+  currentPage: Record<'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes', number> = {
     users: 1,
     requests: 1,
     clicks: 1,
-    withdrawals: 1
+    withdrawals: 1,
+    promoCodes: 1
   };
   
   pageSize = 50;
   pageSizeOptions = [25, 50, 75, 100];
 
-  searchQuery: Record<'users' | 'requests' | 'clicks' | 'withdrawals', string> = {
+  searchQuery: Record<'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes', string> = {
     users: '',
     requests: '',
     clicks: '',
-    withdrawals: ''
+    withdrawals: '',
+    promoCodes: ''
   };
 
   paginatedUsers: any[] = [];
   paginatedRequests: any[] = [];
   paginatedClicks: any[] = [];
   paginatedWithdrawals: any[] = [];
+  paginatedPromoCodes: any[] = [];
 
-  constructor(private cardService: CardService, private router: Router) {}
+  isAdmin = true;
+
+  newPromo = {
+    code: '',
+    percentageBoost: 0,
+    expirationDateDate: '',
+    expirationDateTime: '',
+    maxUses: 0,
+    uses: 0
+  };
+
+  constructor(private cardService: CardService, private router: Router, private promoCodeService: PromoCodeService) {
+  }
 
   async ngOnInit(): Promise<void> {
     try {
@@ -77,10 +98,14 @@ export class DashboardComponent implements OnInit {
       this.withdrawals = await this.cardService.getWithdrawals(); 
       this.totalWithdrawals = this.withdrawals.length;
 
+      this.promoCodes = await this.promoCodeService.getAllPromoCodes();
+      this.totalPromoCodes = this.promoCodes.length;
+
       this.updatePaginatedData('users');
       this.updatePaginatedData('requests');
       this.updatePaginatedData('clicks');
       this.updatePaginatedData('withdrawals');      
+      this.updatePaginatedData('promoCodes');
 
       await this.loadAllCharts();
 
@@ -107,6 +132,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/withdrawal', withdrawalId]);
   }
 
+  goToPromoDetail(id: string) {
+    this.router.navigate(['/promo-detail', id]);
+  }
+
   toggleScene(scene: 'charts' | 'info') {
     this.showCharts = scene === 'charts';
   }
@@ -116,9 +145,43 @@ export class DashboardComponent implements OnInit {
     if (section === 'requests') this.showRequests = !this.showRequests;
     if (section === 'clicks') this.showClicks = !this.showClicks;
     if (section === 'withdrawals') this.showWithdrawals = !this.showWithdrawals;
+    if (section === 'promoCodes') this.showPromoCodes = !this.showPromoCodes;
+  }
+
+  openCreatePromoModal() {
+    this.showPromoModal = true;
+  }
+
+  closePromoModal() {
+    this.showPromoModal = false;
+  }
+
+  async submitPromoCode(form: any) {
+    if (!form.valid) return;
+
+    const fullDateTime = new Date(`${this.newPromo.expirationDateDate}T${this.newPromo.expirationDateTime}:00Z`);
+    const dataToSubmit = {
+      code: this.newPromo.code.trim(),
+      percentageBoost: this.newPromo.percentageBoost,
+      expirationDate: fullDateTime.toISOString(),
+      maxUses: this.newPromo.maxUses,
+      uses: 0
+    };
+
+    try {
+      await this.promoCodeService.createPromoCode(dataToSubmit);
+      this.displayNotification('Promo code created successfully.');
+      this.closePromoModal();
+      this.promoCodes = await this.promoCodeService.getAllPromoCodes();
+      this.totalPromoCodes = this.promoCodes.length;
+      this.updatePaginatedData('promoCodes');
+    } catch (err) {
+      console.error(err);
+      this.displayNotification('Failed to create promo code.');
+    }
   }
   
-  changePage(section: 'users' | 'requests' | 'clicks' | 'withdrawals', direction: 'next' | 'prev') {
+  changePage(section: 'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes', direction: 'next' | 'prev') {
     const maxPage = this.getMaxPage(section)
 
     if (direction === 'next' && this.currentPage[section] < maxPage) {
@@ -130,12 +193,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  getMaxPage(section: 'users' | 'requests' | 'clicks' | 'withdrawals'): number {
+  getMaxPage(section: 'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes'): number {
     const totalItems = this[section].length;
     return Math.ceil(totalItems / this.pageSize);
   }
   
-  onSearch(section: 'users' | 'requests' | 'clicks' | 'withdrawals', value: string) {
+  onSearch(section: 'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes', value: string) {
     this.searchQuery[section] = value.toLowerCase();
     this.currentPage[section] = 1;
     this.updatePaginatedData(section);
@@ -153,10 +216,11 @@ export class DashboardComponent implements OnInit {
       this.updatePaginatedData('requests');
       this.updatePaginatedData('clicks');
       this.updatePaginatedData('withdrawals');
+      this.updatePaginatedData('promoCodes');
     }
   }  
 
-  updatePaginatedData(section: 'users' | 'requests' | 'clicks' | 'withdrawals') {
+  updatePaginatedData(section: 'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes') {
     let data = this[section];
     const query = this.searchQuery[section];
     const filtered = data.filter((item: any) =>
@@ -170,6 +234,7 @@ export class DashboardComponent implements OnInit {
     if (section === 'requests') this.paginatedRequests = filtered.slice(start, end);
     if (section === 'clicks') this.paginatedClicks = filtered.slice(start, end);
     if (section === 'withdrawals') this.paginatedWithdrawals = filtered.slice(start, end);
+    if (section === 'promoCodes') this.paginatedPromoCodes = filtered.slice(start, end);
   }
     
   getInputValue(event: Event): string {
@@ -274,5 +339,134 @@ export class DashboardComponent implements OnInit {
     FileSaver.saveAs(new Blob([excelBuffer]), filename);
   }
 
-  
+  exportData(section: 'users' | 'requests' | 'clicks' | 'withdrawals' | 'promoCodes') {
+    const data = (this as any)[`paginated${section.charAt(0).toUpperCase() + section.slice(1)}`];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, section);
+    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    const filename = `${section}-report-${timestamp}.xlsx`;
+    FileSaver.saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]), filename);
+  }
+
+  async markNotificationResolved(index: number) {
+    const resolvedNotification = this.liveNotifications.splice(index, 1)[0];
+    try {
+      await this.cardService.markNotificationResolved(resolvedNotification.id);
+      console.log('Notification marked as resolved');
+    } catch (error) {
+      console.error('Error marking notification as resolved:', error);
+    }
+  }
+
+  async clearNotificationHistory() {
+    try {
+      await this.cardService.clearNotificationHistory();
+      this.liveNotifications = [];
+      console.log('Notification history cleared');
+    } catch (error) {
+      console.error('Error clearing notification history:', error);
+    }
+  }
+
+  // Toggles the visibility of the backup menu
+  toggleBackupMenu() {
+    this.showBackupMenu = !this.showBackupMenu;
+  }
+
+  // Closes the backup menu
+  closeBackupMenu() {
+    this.showBackupMenu = false;
+  }
+
+  async downloadBackup(format: 'json' | 'csv' | 'sql') {
+    await this.backupDatabase(format);
+    this.closeBackupMenu();
+  }
+
+  showNotification = false;
+  notificationMessage = '';
+
+  // Displays a visual notification
+  displayNotification(message: string) {
+    this.notificationMessage = message;
+    this.showNotification = true;
+    setTimeout(() => {
+      this.showNotification = false;
+      this.notificationMessage = '';
+    }, 3000); // Notification disappears after 3 seconds
+  }
+
+  async backupDatabase(format: 'json' | 'csv' | 'sql') {
+    try {
+      const backupData = await this.cardService.getDatabaseBackup();
+
+      if (format === 'json') {
+        const jsonBlob = new Blob([JSON.stringify(backupData)], { type: 'application/json' });
+        FileSaver.saveAs(jsonBlob, `database-backup-${new Date().toISOString()}.json`);
+      } else if (format === 'csv') {
+        const csvData = this.convertToCSV(backupData);
+        const csvBlob = new Blob([csvData], { type: 'text/csv' });
+        FileSaver.saveAs(csvBlob, `database-backup-${new Date().toISOString()}.csv`);
+      } else if (format === 'sql') {
+        const sqlData = this.convertToSQL(backupData);
+        const sqlBlob = new Blob([sqlData], { type: 'application/sql' });
+        FileSaver.saveAs(sqlBlob, `database-backup-${new Date().toISOString()}.sql`);
+      }
+
+      this.displayNotification('Backup download completed successfully!');
+    } catch (error) {
+      console.error('Backup failed:', error);
+      this.displayNotification('Backup download failed. Please try again.');
+    }
+  }
+
+  convertToCSV(data: any[]): string {
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(row => Object.values(row).join(',')).join('\n');
+    return `${headers}\n${rows}`;
+  }
+
+  convertToSQL(data: any[]): string {
+    const tableName = 'backup_table';
+    const columns = Object.keys(data[0]).join(', ');
+    const values = data
+      .map(row => `(${Object.values(row).map(value => `'${value}'`).join(', ')})`)
+      .join(',\n');
+    return `INSERT INTO ${tableName} (${columns}) VALUES\n${values};`;
+  }
+
+  ngOnDestroy(): void {
+
+  }
+
+  async deleteExpiredCodes(): Promise<void> {
+    try {
+      await this.promoCodeService.deleteExpiredPromoCodes();
+      this.promoCodes = await this.promoCodeService.getAllPromoCodes();
+      this.totalPromoCodes = this.promoCodes.length;
+      this.updatePaginatedData('promoCodes');
+      this.displayNotification('Expired promo codes deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting expired promo codes:', error);
+      this.displayNotification('Failed to delete expired promo codes.');
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+    onDocumentClick(event: MouseEvent): void {
+      const target = event.target as HTMLElement;
+      const dropdown = document.querySelector('.backup-dropdown');
+      const toggleBtn = document.querySelector('.btn-backup-toggle');
+
+      if (
+        this.showBackupMenu &&
+        dropdown &&
+        !dropdown.contains(target) &&
+        toggleBtn &&
+        !toggleBtn.contains(target)
+      ) {
+        this.closeBackupMenu();
+      }
+    }
 }

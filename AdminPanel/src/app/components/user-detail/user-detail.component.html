@@ -85,4 +85,45 @@
       </div>
     </div>
   </form>
+
+  <div class="history-section">
+    <button (click)="toggleHistory()" class="btn btn-primary">
+      {{ showHistory ? 'Hide History' : 'Show History' }}
+    </button>
+
+    <div *ngIf="showHistory" class="history-logs">
+      <h3>History Logs</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Timestamp</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of historyLogs">
+            <td>{{ log.user }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ formatTimestamp(log.timestamp) }}</td>
+            <td>
+              <div *ngIf="log.changes">
+                <div *ngFor="let key of objectKeys(log.changes)">
+                  <strong>{{ key }}:</strong>
+                  {{ log.changes[key].from }} → {{ log.changes[key].to }}
+                </div>
+              </div>
+              <div *ngIf="!log.changes">{{ log.email }}</div>
+            </td>
+            <td>
+              <button (click)="deleteHistoryEntry(log.timestamp)" class="btn btn-danger btn-sm">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

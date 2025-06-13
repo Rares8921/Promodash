@@ -23,11 +23,15 @@ import i18n from "../../i18n"
 import { ThemeContext } from "../context/ThemeContext"
 import { GoogleSignin } from "@react-native-google-signin/google-signin"
 import { Ionicons } from "@expo/vector-icons"
+import RecaptchaWebView from "../../components/RecaptchaWebView"
+import { Keyboard } from "react-native";
 
 export default function SignUpScreen() {
   const fadeAnimAlert = useRef(new Animated.Value(0)).current
   const [alertVisible, setAlertVisible] = useState(false)
   const [alertMessage, setAlertMessage] = useState("")
+  const [recaptchaToken, setRecaptchaToken] = useState(null)
+  const [showCaptcha, setShowCaptcha] = useState(false);
   const { setUser } = useContext(UserContext)
   const { theme } = useContext(ThemeContext)
   const isDarkMode = theme === "Dark"
@@ -144,27 +148,47 @@ export default function SignUpScreen() {
     }
   }
 
-  const submit = async () => {
-    if (!form.email || !form.password || !form.confirmPassword) {
-      return showCustomAlert(i18n.t("signup.error_fill_all_fields"))
+  const handleSignup = () => {
+    Keyboard.dismiss();
+    if (!recaptchaToken) {
+      setShowCaptcha(true);
+      return;
     }
+    submit(recaptchaToken);
+  };
+
+  const submit = async (tokenOverride = null) => {
+    if (!form.email || !form.password || !form.confirmPassword) {
+      return showCustomAlert(i18n.t("signup.error_fill_all_fields"));
+    }
+
     if (form.password !== form.confirmPassword) {
-      return showCustomAlert(i18n.t("signup.error_password_mismatch"))
+      return showCustomAlert(i18n.t("signup.error_password_mismatch"));
     }
 
     if (await checkUserExists(form.email)) {
-      return showCustomAlert(i18n.t("signup.error_email_in_use"))
+      return showCustomAlert(i18n.t("signup.error_email_in_use"));
     }
 
-    const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
+    const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!passwordRegex.test(form.password)) {
-      return showCustomAlert(i18n.t("signup.password_fail"))
+      return showCustomAlert(i18n.t("signup.password_fail"));
     }
 
-    setSubmitting(true)
+    if (!tokenOverride && !recaptchaToken) {
+      if (!showCaptcha) setShowCaptcha(true);
+      return;
+    }
+
+    const tokenToUse = tokenOverride || recaptchaToken;
+    setRecaptchaToken(null);
+
+    setSubmitting(true);
     try {
-      const sanitizedEmail = validator.normalizeEmail(form.email)
-      const sanitizedPassword = validator.escape(form.password)
+      const sanitizedEmail = validator.normalizeEmail(form.email);
+      const sanitizedPassword = validator.escape(form.password);
+
+
 
       const result = await createUser(
         sanitizedEmail,
@@ -173,30 +197,36 @@ export default function SignUpScreen() {
         i18n.locale.toString(),
         form.theme,
         googleSignUp,
-      )
+        { recaptchaToken: tokenToUse }
+      );
 
-      if (!result) {
-        throw new Error(i18n.t("signup.error_creation_failed"))
-      }
+      if (!result) throw new Error(i18n.t("signup.error_creation_failed"));
 
       if (!googleSignUp) {
-        showCustomAlert(i18n.t("signup.check_email"))
+        showCustomAlert(i18n.t("signup.check_email"));
         await fetch("https://promodash.vercel.app/api/send_verification_email_webhook", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: sanitizedEmail }),
-        })
+          body: JSON.stringify({ email: sanitizedEmail, recaptchaToken: tokenToUse }),
+        });
       } else {
-        showCustomAlert(i18n.t("signup.google_account_created_successfully"))
+        showCustomAlert(i18n.t("signup.google_account_created_successfully"));
       }
 
-      router.replace("/(auth)/login")
+      router.replace("/(auth)/login");
     } catch (error) {
-      showCustomAlert(error.message || i18n.t("signup.error_generic"))
+      const lower = error.message?.toLowerCase() || "";
+      console.log(lower);
+      if (lower.includes("captcha")) {
+        setShowCaptcha(true);
+        showCustomAlert(i18n.t("general.captcha"));
+      } else {
+        showCustomAlert(error.message || i18n.t("signup.error_generic"));
+      }
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -204,6 +234,32 @@ export default function SignUpScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -500}
     >
+      {showCaptcha && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <RecaptchaWebView
+            onVerify={(token) => {
+              setShowCaptcha(false);
+              setRecaptchaToken(token);
+              setTimeout(() => {
+                submit(token);
+              }, 100);
+            }}
+          />
+        </View>
+      )}
+
       <Animated.View
         style={[
           styles.inner,
@@ -342,7 +398,7 @@ export default function SignUpScreen() {
         </View>
 
         {/* Buton Sign Up */}
-        <TouchableOpacity onPress={submit} style={styles.buttonContainer} disabled={submitting}>
+        <TouchableOpacity onPress={handleSignup} style={styles.buttonContainer} disabled={submitting}>
           <LinearGradient
             colors={submitting ? ["#ccc", "#aaa"] : isDarkMode ? ["#FFD700", "#FFA500"] : ["#4A6FFF", "#2E4BFF"]}
             start={{ x: 0, y: 0 }}

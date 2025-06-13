@@ -12,6 +12,8 @@ export class ClickDetailComponent implements OnInit {
   clickForm: FormGroup;
   clickId: string;
   loading = true;
+  showHistory: boolean = false;
+  historyLogs: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -52,5 +54,23 @@ export class ClickDetailComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.fetchHistoryLogs();
+    }
+  }
+
+  fetchHistoryLogs(): void {
+    this.clickAdminService.getClickHistory(this.clickId).then(
+      (logs: any[]) => {
+        this.historyLogs = logs;
+      },
+      (error: any) => {
+        console.error('Error fetching history logs:', error);
+      }
+    );
   }
 }

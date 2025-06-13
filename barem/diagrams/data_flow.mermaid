@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant UserContext
+    participant API
+    participant WithdrawalOptionsScreen
+    participant StoreDetailsScreen
+    participant FavoritesContext
+    participant ThemeContext
+    participant LanguageContext
+    WithdrawalOptionsScreen->>UserContext: Get user balance
+    UserContext->>API: Fetch user data
+    API-->>UserContext: Return user data
+    StoreDetailsScreen->>FavoritesContext: Check favorite stores
+    FavoritesContext->>API: Fetch store details
+    API-->>FavoritesContext: Return store details
+    WithdrawalOptionsScreen->>ThemeContext: Get theme
+    ThemeContext-->>WithdrawalOptionsScreen: Return theme
+    StoreDetailsScreen->>LanguageContext: Get translations
+    LanguageContext-->>StoreDetailsScreen: Return translations
+    StoreDetailsScreen->>API: Fetch affiliate link
+    API-->>StoreDetailsScreen: Return affiliate link

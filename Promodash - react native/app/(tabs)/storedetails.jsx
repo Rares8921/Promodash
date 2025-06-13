@@ -1,56 +1,93 @@
+// Importing necessary libraries and components
 import React, { useMemo, useContext, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../context/ThemeContext";
+import { UserContext } from "../context/UserContext";
+import { getPromoBoost } from "../../lib/appwrite";
 import { generateAffiliateLink } from "../../lib/profitshare";
 import { Linking } from "react-native";
-import { getAverageCommission, calculateCashbackSplit } from "../../lib/cashbackCalculator";
+import { getAverageCommission, calculateCashbackSplit, calculateCashback } from "../../lib/cashbackCalculator";
 import i18n from "../../i18n";
 import { FavoritesContext } from "../context/FavoritesContext";
 
+// Main component for displaying store details
 export default function StoreDetailsScreen() {
-  
+  // Hooks for navigation and routing
   const navigation = useNavigation();
   const router = useRouter();
+
+  // Accessing theme context for light/dark mode
   const { theme } = useContext(ThemeContext);
+
+  const { user } = useContext(UserContext);
+  const [promoBoost, setPromoBoost] = useState(null);
+
+  // Accessing route parameters
   const route = useRoute();
 
+  // Accessing favorite stores context
   const { favoriteStores, toggleFavoriteStore } = useContext(FavoritesContext);
-  
+
+  // Parsing store details from route parameters
   const parsedStore = useMemo(() => {
     const store = route.params?.store || {};
     return store ? JSON.parse(store) : {};
   }, [route.params]);
 
+  // Extracting commission range and calculating average commission
   const commissionRange = parsedStore.commissions?.[0]?.value || "0%";
   const averageCommission = getAverageCommission(commissionRange);
-  var { userCashback, platformEarnings } = calculateCashbackSplit(averageCommission);
 
-  if(parsedStore.id === "35") {
-    userCashback = 10;
-  } 
+  const promoList = promoBoost ? [promoBoost] : [];
+  let overrideCashback = null;
 
+  if (parsedStore.id === "35") {
+    const boost = promoList.length > 0 && promoList[0].percentageBoost
+      ? promoList[0].percentageBoost
+      : 0;
+    overrideCashback = 10 + boost;
+  }
+
+  const baseSplit = calculateCashbackSplit( averageCommission, user, [], overrideCashback != null ? 10 : null);
+  const boostedSplit = calculateCashbackSplit(averageCommission, user, promoList, overrideCashback);
+
+  const originalCashback = baseSplit.userCashback;
+  const finalCashback = boostedSplit.userCashback;
+
+  // Checking if the store is marked as favorite
   const isFavorite = favoriteStores.some((fav) => fav.id === parsedStore.id);
-  
+
+  // State for storing logo URI and affiliate link
   const [parsedStoreLogo, setLogoUri] = useState(require("../../assets/images/un.png"));
   const [affiliateLink, setAffiliateLink] = useState(null);
 
+  // Fetching affiliate link asynchronously
   useEffect(() => {
     async function fetchAffiliateLink() {
-      if (parsedStore.name && parsedStore.url && parsedStore.id) {
+      if (parsedStore.name && parsedStore.url && parsedStore.id && (promoBoost || user?.Active_Code === null || user?.Active_Code === undefined || user?.Active_Code.length == 0)) {
         try {
-          const link = await generateAffiliateLink(parsedStore.name, parsedStore.url, parsedStore.id, userCashback);
+          const link = await generateAffiliateLink(parsedStore.name, parsedStore.url, parsedStore.id, finalCashback / (overrideCashback != null ? 1.5 : 1));
           setAffiliateLink(link);
         } catch (error) {
           console.error("Error generating affiliate link:", error);
         }
-      }
+      } 
     }
     fetchAffiliateLink();
-  }, [parsedStore.name, parsedStore.url, parsedStore.id, userCashback]);
-  
+  }, [parsedStore.name, parsedStore.url, parsedStore.id, finalCashback / (overrideCashback != null ? 1.5 : 1)]);
+
+  useEffect(() => {
+    if (user?.Active_Code) {
+      getPromoBoost(user.Active_Code).then((boost) => {
+        if (boost) setPromoBoost(boost);
+      });
+    }
+  }, [user?.Active_Code]);
+
+  // Caching store details locally
   useEffect(() => {
     async function cacheStore() {
       const cachedStores = await AsyncStorage.getItem("cachedStores");
@@ -63,14 +100,16 @@ export default function StoreDetailsScreen() {
       }
     }
     cacheStore();
-  }, []);  
+  }, []);
 
+  // Updating logo URI if available
   useEffect(() => {
     if (parsedStore.logo) {
       setLogoUri({ uri: parsedStore.logo.startsWith("//") ? `https:${parsedStore.logo}` : parsedStore.logo });
     }
   }, [parsedStore.logo]);
 
+  // Handler for navigating to the store's website
   const handleGoToStore = async () => {
     if (!parsedStore.name || !parsedStore.url) {
       Alert.alert(i18n.t("store_details.error_title"), i18n.t("store_details.missing_info"));
@@ -85,14 +124,16 @@ export default function StoreDetailsScreen() {
     }
   };
 
+  // Toggling favorite status for the store
   const toggleFavorite = () => {
     toggleFavoriteStore(parsedStore);
   };
 
+  // Calculating cashback based on user type
+  const cashback = calculateCashback(parsedStore.amountSpent, user.isPremium ? "premium" : "default");
+
   return (
-    <View
-      style={[styles.container, theme === "Dark" && styles.darkContainer]}
-    >
+    <View style={[styles.container, theme === "Dark" && styles.darkContainer]}>
       {/* HEADER */}
       <View style={[styles.header, theme === "Dark" && styles.darkHeader]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -110,17 +151,27 @@ export default function StoreDetailsScreen() {
         </TouchableOpacity>
       </View>
 
-
-      
       {/* CASHBACK SECTION */}
       <View style={[styles.cashbackContainer, theme === "Dark" && styles.darkCashback]}>
         <Image
           source={typeof parsedStoreLogo === "string" ? { uri: parsedStoreLogo, cache: 'force-cache' } : parsedStoreLogo}
           style={styles.storeLogo}
         />
+
         <Text style={[styles.cashbackText, theme === "Dark" && styles.darkCashbackText]}>
-          {i18n.t("store_details.cashback")}: {userCashback}%
+          {i18n.t("store_details.cashback")}:{" "}
+          {user?.Active_Code && promoBoost ? (
+            <>
+              <Text style={{ textDecorationLine: "line-through", color: "#888" }}>
+                {originalCashback}%
+              </Text>{" "}
+              {finalCashback}%
+            </>
+          ) : (
+            `${originalCashback}%`
+          )}
         </Text>
+
         <TouchableOpacity
           style={[
             styles.transferButton,
@@ -139,7 +190,7 @@ export default function StoreDetailsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* PRODUCTS PAGE */} 
+      {/* PRODUCTS PAGE */}
       <TouchableOpacity
         style={[
           styles.productsButton,
@@ -230,7 +281,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 25,
     paddingVertical: 25,
-    paddingTop:45,
+    paddingTop: 45,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderColor: "#ddd",

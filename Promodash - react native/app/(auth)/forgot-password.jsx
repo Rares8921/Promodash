@@ -1,6 +1,4 @@
-"use client"
-
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useRef, useEffect } from "react"
 import {
   View,
   Text,
@@ -11,27 +9,31 @@ import {
   Platform,
   Alert,
   Animated,
+  Keyboard,
 } from "react-native"
 import { useRouter } from "expo-router"
 import { resetPassword } from "../../lib/appwrite"
 import { LinearGradient } from "expo-linear-gradient"
 import i18n from "../../i18n"
-import { ThemeContext } from "../context/ThemeContext" // Context pentru temă
+import { ThemeContext } from "../context/ThemeContext"
 import { Ionicons } from "@expo/vector-icons"
+import RecaptchaWebView from "../../components/RecaptchaWebView"
 
 export default function ForgotPasswordScreen() {
   const { theme } = useContext(ThemeContext)
   const isDarkMode = theme === "Dark"
   const router = useRouter()
+
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
+  const [recaptchaToken, setRecaptchaToken] = useState(null)
+  const [showCaptcha, setShowCaptcha] = useState(false)
 
-  // Animation values
-  const fadeAnim = React.useRef(new Animated.Value(0)).current
-  const slideAnim = React.useRef(new Animated.Value(50)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(50)).current
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -46,19 +48,35 @@ export default function ForgotPasswordScreen() {
     ]).start()
   }, [])
 
-  const handleResetPassword = async () => {
+  const submit = async (tokenOverride = null) => {
+    Keyboard.dismiss()
     if (!email) {
       Alert.alert(i18n.t("forgot_password.error"), i18n.t("forgot_password.missing_email"))
       return
     }
 
+    const tokenToUse = tokenOverride || recaptchaToken
+    if (!tokenToUse) {
+      setShowCaptcha(true)
+      return
+    }
+
+    setRecaptchaToken(null)
     setLoading(true)
+
     try {
-      await resetPassword(email)
+      await resetPassword(email, tokenToUse)
       Alert.alert(i18n.t("forgot_password.success"), i18n.t("forgot_password.success_message"))
       router.replace("/(auth)/login")
     } catch (error) {
-      Alert.alert(i18n.t("forgot_password.error"), i18n.t("forgot_password.fail_message"))
+      const msg = error.message?.toLowerCase() || ""
+      console.log(msg);
+      if (msg.includes("captcha")) {
+        setShowCaptcha(true)
+        Alert.alert(i18n.t("general.error"), i18n.t("general.captcha"))
+      } else {
+        Alert.alert(i18n.t("forgot_password.error"), i18n.t("forgot_password.fail_message"))
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +88,28 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -500}
     >
+      {showCaptcha && (
+        <View style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 999,
+        }}>
+          <RecaptchaWebView
+            onVerify={(token) => {
+              setRecaptchaToken(token)
+              setShowCaptcha(false)
+              setTimeout(() => submit(token), 100)
+            }}
+          />
+        </View>
+      )}
+
       <Animated.View
         style={[
           styles.inner,
@@ -96,17 +136,14 @@ export default function ForgotPasswordScreen() {
           </Text>
         </View>
 
-        {/* Input pentru Email */}
-        <View
-          style={[
-            styles.inputWrapper,
-            {
-              backgroundColor: isDarkMode ? "#222" : "#fff",
-              borderColor: inputFocused ? (isDarkMode ? "#FFD700" : "#2E4BFF") : isDarkMode ? "#333" : "#e0e0e0",
-              shadowOpacity: inputFocused ? 0.2 : 0,
-            },
-          ]}
-        >
+        <View style={[
+          styles.inputWrapper,
+          {
+            backgroundColor: isDarkMode ? "#222" : "#fff",
+            borderColor: inputFocused ? (isDarkMode ? "#FFD700" : "#2E4BFF") : isDarkMode ? "#333" : "#e0e0e0",
+            shadowOpacity: inputFocused ? 0.2 : 0,
+          },
+        ]}>
           <Ionicons
             name="mail-outline"
             size={20}
@@ -126,9 +163,8 @@ export default function ForgotPasswordScreen() {
           />
         </View>
 
-        {/* Buton Reset Password */}
         <TouchableOpacity
-          onPress={handleResetPassword}
+          onPress={() => submit()}
           disabled={loading}
           activeOpacity={0.8}
           style={styles.buttonContainer}
@@ -150,7 +186,6 @@ export default function ForgotPasswordScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Back to Login */}
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons
             name="arrow-back-outline"

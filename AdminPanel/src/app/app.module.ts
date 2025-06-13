@@ -38,6 +38,8 @@ import { UserDetailComponent } from './components/user-detail/user-detail.compon
 import { RequestDetailComponent } from './components/request-detail/request-detail.component';
 import { ClickDetailComponent } from './components/click-detail/click-detail.component';
 import { WithdrawalDetailComponent } from './components/withdrawal-detail/withdrawal-detail.component';
+import { PromoCodesComponent } from './components/promo-codes/promo-codes.component';
+import { PromoCodeDetailComponent } from './components/promo-code-detail/promo-code-detail.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +56,9 @@ import { WithdrawalDetailComponent } from './components/withdrawal-detail/withdr
     UserDetailComponent,
     RequestDetailComponent,
     ClickDetailComponent,
-    WithdrawalDetailComponent
+    WithdrawalDetailComponent,
+    PromoCodesComponent,
+    PromoCodeDetailComponent
   ],
   imports: [
     BrowserModule,

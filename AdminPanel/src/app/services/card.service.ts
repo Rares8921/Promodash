@@ -4,6 +4,7 @@ import { Databases, Query, OAuthProvider, Account, Client, Storage } from 'appwr
 import { environment } from 'src/environments/environment';
 import axios from 'axios';
 import * as crypto from 'crypto-js';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -27,6 +28,8 @@ export class CardService {
 
   private account = new Account(this.client); // plm this
   private databases = new Databases(this.client);
+
+  constructor(private http: HttpClient) {}
 
   timeSince = (date: string): string => {
     const now = new Date(); // Current time
@@ -168,7 +171,6 @@ export class CardService {
   } catch (error) {
     throw new Error("Database fetch fail. Check appwrite connection");
   }
-  
 };
 
 async getUserById(userId: string) {
@@ -239,6 +241,18 @@ signIn = async () => {
     }));
   }
 
+  async getPromoCodes() {
+    const documents = await this.fetchAllDocuments(environment.promocodesCollectionId);
+    return documents.map(doc => ({
+      $id: doc.$id,
+      code: doc.code || '',
+      percentageBoost: doc.percentageBoost || 0,
+      expirationDate: doc.expirationDate || '',
+      maxUses: doc.maxUses || 0,
+      uses: doc.uses || 0
+    }));
+  }
+
   async getCommissionStats() {
     const apiUser = environment.profitshareUser;
     const apiKey = environment.profitshareKey;
@@ -268,6 +282,46 @@ signIn = async () => {
       return [];
     }
   }
+
+  // Method to mark a notification as resolved
+  markNotificationResolved(notificationId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Simulate API call to mark notification as resolved
+      setTimeout(() => {
+        console.log(`Notification ${notificationId} marked as resolved.`);
+        resolve();
+      }, 500);
+    });
+  }
+
+  // Method to clear notification history
+  clearNotificationHistory(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Simulate API call to clear notification history
+      setTimeout(() => {
+        console.log('Notification history cleared.');
+        resolve();
+      }, 500);
+    });
+  }
+
+  async getDatabaseBackup(): Promise<any[]> {
+    const users = await this.getAllUsers();
+    const requests = await this.getRequests();
+    const clicks = await this.getClicks();
+    const withdrawals = await this.getWithdrawals();
+
+    const promoCodes = await this.getPromoCodes();
+
+    return [
+      ...users.map(user => ({ type: 'User', ...user })),
+      ...requests.map(request => ({ type: 'Request', ...request })),
+      ...clicks.map(click => ({ type: 'Click', ...click })),
+      ...withdrawals.map(withdrawal => ({ type: 'Withdrawal', ...withdrawal })),
+      ...promoCodes.map(promoCode => ({ type: 'PromoCode', ...promoCode }))
+    ];
+  }
+
 
 // Exemplu de update, poate ai nevoie
 // export const updateUserData = async (field, value) => {

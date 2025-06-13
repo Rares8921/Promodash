@@ -45,7 +45,17 @@
         "enter_code": "Introdu codul",
         "apply": "Aplica",
         "active_codes": "ACTIVE",
-        "no_active_codes": "Nu exista coduri active momentan. Urmareste ofertele si promotiile viitoare."
+        "active_label": "Cod aplicat",
+        "no_active_codes": "Momentan nu ai niciun cod activ.",
+        "success_title": "Cod aplicat",
+        "success_message": "Felicitari! Ai activat cu succes codul.",
+        "error_title": "Eroare",
+        "error_default": "A aparut o problema. Incearca din nou.",
+        "not_found": "Codul introdus nu exista.",
+        "expired": "Codul a expirat.",
+        "limit_reached": "Limita de utilizari a fost atinsa.",
+        "auth_required": "Trebuie sa fii autentificat pentru a aplica un cod.",
+        "already_active": "Ai deja un cod activ."
     },
     "conditions": {
         "title": "Conditii de Retragere",
@@ -195,9 +205,22 @@
         "alerts": {
             "name_too_short": "Numele trebuie sa contina minim 3 litere!",
             "invalid_email": "Email invalid!",
-            "update_success": "Optiunea {{field}} schimbata cu succes!"
+            "update_success": "Optiunea {{field}} schimbata cu succes!",
+            "generic_error": "A aparut o eroare. Incearca din nou."
         },
-        "reset_password": "Reset password"
+        "reset_password": "Reseteaza parola",
+        "security": "Securitate",
+        "enable_2fa": "Activare 2FA",
+        "2fa_enabled": "2FA activat",
+        "2fa_disabled": "2FA dezactivat",
+        "delete_active_code": "Sterge codul activ",
+        "confirm_delete_active_code": "Esti sigur ca vrei sa stergi codul activ?",
+        "active_code_deleted": "Codul a fost sters cu succes.",
+        "active_code": "Cod activ",
+        "delete_current_code": "Sterge codul activ",
+        "cancel": "Anuleaza",
+        "delete": "Sterge",
+        "expires_at": "Expira la"
     },
     "store_details": {
         "error_title": "Eroare",
@@ -356,7 +379,8 @@
         "back_to_login": "Inapoi la Autentificare"
     },
     "general": {
-        "loading": "Se incarca.."
+        "loading": "Se incarca..",
+        "captcha": "Captcha a esuat. Incearca din nou."
     },
     "appwrite": {
         "account_creation": "Crearea contului a esuat. Incearca din nou sau contacteaza suportul: promodashcs@gmail.com",
@@ -366,6 +390,44 @@
         "click_fail": "A aparut o problema in procesarea cererii tale de achizitie. Te rugam sa ne contactezi: promodashcs@gmail.com",
         "user_update_fail": "A aparut o problema la actualizarea contului tau. Te rugam sa ne contactezi: promodashcs@gmail.com",
         "request_send_fail": "Cererea ta nu a putut fi trimisa. Daca eroarea persista, contacteaza-ne la: promodashcs@gmail.com",
-        "google_login_fail": "Acesta este un cont Google. Te rugam sa te autentifici prin google."
+        "google_login_fail": "Acesta este un cont Google. Te rugam sa te autentifici prin google.",
+        "unregistered_account": "Acest const nu este inregistrat."
+    },
+    "extra_authentication": {
+        "biometric_option": "Autentificare biometrica",
+        "password_option": "Introdu parola",
+        "authentication_fail": "Autentificarea a esuat",
+        "authentication_fail_message": "Autentificarea nu a mers. Te rugam sa incerci alta metoda",
+        "close_modal_message": "Incearca alta metoda",
+        "continue": "Continua",
+        "empty_password": "Introdu PIN pentru a continua.",
+        "wrong_password": "PIN gresit. Incearca din nou.",
+        "too_many_attempts": "Prea multe incercari",
+        "too_many_attempts_message": "Ai introdus PIN gresit de 3 ori. Aplicatia se va inchide.",
+        "pin_section_title": "Seteaza PIN-ul de acces",
+        "pin_section_title_edit": "Modifica PIN-ul de acces",
+        "pin_new": "PIN nou",
+        "pin_confirm": "Confirma PIN-ul",
+        "pin_saved_success": "PIN salvat cu succes",
+        "pin_saved_error": "Eroare la salvarea PIN-ului",
+        "pin_not_match": "PIN-urile nu coincid",
+        "pin_invalid_length": "PIN-ul trebuie sa aiba exact 6 cifre",
+        "pin_missing": "Autentificare esuata",
+        "pin_old": "PIN vechi",
+        "active": "activata",
+        "non_active": "dezactivata",
+        "change_pin_title": "Schimba PIN-ul",
+        "set_pin_title": "Seteaza un PIN nou",
+        "enter_current_pin": "Introduceti PIN-ul curent",
+        "enter_new_pin": "Introduceti un nou PIN",
+        "confirm_new_pin": "Confirmati noul PIN",
+        "pin_wrong": "PIN-ul curent este gresit"
+    },
+    "2fa": {
+        "enter_code": "Introdu codul trimis pe email",
+        "resend": "Trimite din nou codul",
+        "code_expired": "Cod gresit sau expirat",
+        "trusted_device": "Tine minte acest dispozitiv"
     }
+
 }

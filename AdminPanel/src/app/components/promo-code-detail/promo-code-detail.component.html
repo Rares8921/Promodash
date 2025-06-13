@@ -1,0 +1,100 @@
+<div class="user-detail-container">
+  <button (click)="goBack()" class="btn btn-back">
+    <i class="icon-back"></i>
+    <span>Back to Dashboard</span>
+  </button>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading promo code details...</p>
+  </div>
+
+  <form [formGroup]="promoForm" *ngIf="!loading" class="user-form">
+    <h2 class="form-title">Promo Code Details</h2>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="code">Code</label>
+        <input id="code" formControlName="code">
+      </div>
+
+      <div class="form-group">
+        <label for="percentageBoost">Boost Percentage</label>
+        <input id="percentageBoost" formControlName="percentageBoost" type="number">
+      </div>
+
+      <div class="form-group">
+        <label for="expirationDate">Expiration Date</label>
+        <input id="expirationDate" formControlName="expirationDate" type="datetime-local">
+      </div>
+
+      <div class="form-group">
+        <label for="maxUses">Max Uses</label>
+        <input id="maxUses" formControlName="maxUses" type="number">
+      </div>
+
+      <div class="form-group">
+        <label for="uses">Used</label>
+        <input id="uses" formControlName="uses" type="number" [disabled]="true">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" (click)="save()" class="btn btn-primary">
+        <i class="icon-save"></i> Save Changes
+      </button>
+      <div class="secondary-actions">
+        <button type="button" (click)="resetForm()" class="btn btn-secondary">
+          <i class="icon-reset"></i> Reset
+        </button>
+        <button type="button" (click)="delete()" class="btn btn-danger">
+          <i class="icon-delete"></i> Delete Promo Code
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="history-section">
+    <button (click)="toggleHistory()" class="btn btn-primary">
+      {{ showHistory ? 'Hide History' : 'Show History' }}
+    </button>
+
+    <div *ngIf="showHistory" class="history-logs">
+      <h3>History Logs</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Promo ID</th>
+            <th>Action</th>
+            <th>Timestamp</th>
+            <th>Details</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of historyLogs">
+            <td>{{ log.promoId }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ formatTimestamp(log.timestamp) }}</td>
+            <td>
+              <div *ngIf="log.details?.changes">
+                <div *ngFor="let key of objectKeys(log.details.changes)">
+                  <strong>{{ key }}:</strong>
+                  {{ log.details.changes[key].from }} → {{ log.details.changes[key].to }}
+                </div>
+              </div>
+              <div *ngIf="!log.details?.changes">
+                <pre>{{ log.details | json }}</pre>
+              </div>
+            </td>
+            <td>
+              <button (click)="deleteHistoryEntry(log.timestamp)" class="btn btn-danger btn-sm">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useContext, useRef, useEffect } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Animated, Easing } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Animated, Easing, Keyboard } from "react-native"
 import { useRouter } from "expo-router"
 import { ThemeContext } from "../context/ThemeContext"
 import i18n from "../../i18n"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
+import RecaptchaWebView from "../../components/RecaptchaWebView"
 
 export default function ResendVerificationScreen() {
   const router = useRouter()
@@ -15,8 +16,9 @@ export default function ResendVerificationScreen() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
+  const [recaptchaToken, setRecaptchaToken] = useState(null)
+  const [showCaptcha, setShowCaptcha] = useState(false)
 
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
@@ -35,7 +37,6 @@ export default function ResendVerificationScreen() {
       }),
     ]).start()
 
-    // Start pulsing animation for button
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -54,12 +55,21 @@ export default function ResendVerificationScreen() {
     ).start()
   }, [])
 
-  const handleResendVerification = async () => {
+  const handleResendVerification = async (tokenOverride = null) => {
+    Keyboard.dismiss()
+
     if (!email) {
       Alert.alert(i18n.t("resend_verification.error_title"), i18n.t("resend_verification.enter_email"))
       return
     }
 
+    const tokenToUse = tokenOverride || recaptchaToken
+    if (!tokenToUse) {
+      setShowCaptcha(true)
+      return
+    }
+
+    setRecaptchaToken(null)
     setLoading(true)
 
     try {
@@ -67,7 +77,7 @@ export default function ResendVerificationScreen() {
       const response = await fetch("https://promodash.vercel.app/api/send_verification_email_webhook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sanitizedEmail }),
+        body: JSON.stringify({ email: sanitizedEmail, recaptchaToken: tokenToUse }),
       })
 
       if (!response.ok) {
@@ -78,7 +88,13 @@ export default function ResendVerificationScreen() {
       Alert.alert(i18n.t("resend_verification.success_title"), i18n.t("resend_verification.email_sent"))
       router.replace("/(auth)/login")
     } catch (error) {
-      Alert.alert(i18n.t("resend_verification.error_title"), error.message)
+      const msg = error.message?.toLowerCase() || ""
+      if (msg.includes("captcha")) {
+        setShowCaptcha(true)
+        Alert.alert(i18n.t("general.error"), i18n.t("general.captcha"))
+      } else {
+        Alert.alert(i18n.t("resend_verification.error_title"), error.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -86,6 +102,28 @@ export default function ResendVerificationScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? "#121212" : "#f7f9fc" }]}>
+      {showCaptcha && (
+        <View style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 999,
+        }}>
+          <RecaptchaWebView
+            onVerify={(token) => {
+              setRecaptchaToken(token)
+              setShowCaptcha(false)
+              setTimeout(() => handleResendVerification(token), 100)
+            }}
+          />
+        </View>
+      )}
+
       <Animated.View
         style={[
           styles.contentContainer,
@@ -142,7 +180,7 @@ export default function ResendVerificationScreen() {
         </View>
 
         <Animated.View style={{ transform: [{ scale: pulseAnim }], width: "100%" }}>
-          <TouchableOpacity onPress={handleResendVerification} disabled={loading} style={styles.buttonContainer}>
+          <TouchableOpacity onPress={() => handleResendVerification()} disabled={loading} style={styles.buttonContainer}>
             <LinearGradient
               colors={loading ? ["#ccc", "#aaa"] : isDarkMode ? ["#FFD700", "#FFA500"] : ["#4A6FFF", "#2E4BFF"]}
               start={{ x: 0, y: 0 }}
@@ -208,11 +246,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
     marginBottom: 10,
   },
   subtitle: {

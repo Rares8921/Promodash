@@ -17,6 +17,9 @@ export class RequestDetailComponent implements OnInit {
   emailForm: FormGroup;
   requestData: any;
 
+  showHistory: boolean = false;
+  historyLogs: any[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
@@ -42,6 +45,9 @@ export class RequestDetailComponent implements OnInit {
     this.requestForm.patchValue(request);
     this.loading = false;
     this.requestData = request;
+
+    // Fetch history logs
+    this.historyLogs = await this.requestAdminService.getRequestHistory(this.requestId);
   }
 
   getFullBase64(imageString: string) {
@@ -86,5 +92,22 @@ export class RequestDetailComponent implements OnInit {
       alert('Failed to send email.');
     }
   }
-  
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.fetchHistoryLogs();
+    }
+  }
+
+  fetchHistoryLogs(): void {
+    this.requestAdminService.getRequestHistory(this.requestId).then(
+      (logs: any[]) => {
+        this.historyLogs = logs;
+      },
+      (error: any) => {
+        console.error('Error fetching history logs:', error);
+      }
+    );
+  }
 }

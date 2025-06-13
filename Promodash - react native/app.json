@@ -56,6 +56,12 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.470943341692-rn3g2hhpnlgj020046kvaqejen4m7v8c"
         }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+        }
       ]
     ],
     "experiments": {

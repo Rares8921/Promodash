@@ -1,0 +1,29 @@
+classDiagram
+    class WithdrawalOptionsScreen {
+        +withdrawAmount: number
+        +userBalance: number
+        +methods: array
+        +handleWithdraw(): void
+        +navigateToConditions(): void
+        +validateIBAN(): boolean
+    }
+    class UserContext {
+        +user: object
+        +balance: number
+        +reloadUser(): void
+        +loading: boolean
+    }
+    class ThemeContext {
+        +theme: string
+        +toggleTheme(): void
+    }
+    class PaymentMethod {
+        +name: string
+        +icon: string
+        +processPayment(): void
+    }
+    WithdrawalOptionsScreen --> UserContext
+    WithdrawalOptionsScreen --> ThemeContext
+    WithdrawalOptionsScreen --> PaymentMethod
+    WithdrawalOptionsScreen --> API
+    API --> UserContext

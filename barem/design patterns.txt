@@ -1,0 +1,26 @@
+UserContext.js - Singleton Pattern:
+- Added a singleton instance that ensures only one UserContext exists
+- Added cleanup to reset the singleton when the component unmounts
+- Preserved all existing functionality
+
+
+ThemeContext.js - Observer Pattern:
+- Implemented a ThemeObservable class that manages observers
+- Added methods to subscribe, unsubscribe, and notify observers
+- Enhanced the context with observer pattern methods
+- Maintained all existing theme functionality
+
+
+withdrawal.jsx - Factory Pattern:
+- Implemented a PaymentMethodCreator class with a factory method
+- Created different payment method components based on type
+- Preserved the existing PaymentMethodFactory component
+- Maintained all existing withdrawal functionality
+
+
+cashbackCalculator.js - Strategy Pattern:
+- The Strategy Pattern was already implemented with different calculation strategies
+- Enhanced the implementation with additional methods:
+- createCashbackStrategy to dynamically add new strategies
+- getAvailableStrategies to list available strategies
+- Preserved all existing hardcoded values and calculations

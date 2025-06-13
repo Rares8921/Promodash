@@ -13,6 +13,10 @@ export class UserDetailComponent implements OnInit {
   userId: string;
   originalEmail: string = '';
   loading = true;
+  showHistory: boolean = false;
+  historyLogs: any[] = [];
+
+  objectKeys = Object.keys;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,6 +47,12 @@ export class UserDetailComponent implements OnInit {
     this.loading = false;
   }
 
+  formatTimestamp(iso: string): string {
+    const date = new Date(iso);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())} ${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+  }
+
   async save() {
     const formData = this.userForm.value;
 
@@ -56,13 +66,23 @@ export class UserDetailComponent implements OnInit {
     const emailChanged = formData.email !== this.originalEmail;
 
     await this.userAdminService.updateUser(this.userId, formData, this.originalEmail, emailChanged);
+
+    if (this.showHistory) {
+      this.fetchHistoryLogs(); // refresh live
+    }
+
     alert('User updated!');
   }
 
   async delete() {
     if (confirm('Are you sure you want to delete this user?')) {
       await this.userAdminService.deleteUser(this.userId, this.originalEmail);
+
+      // Log the delete action
+      await this.userAdminService.logUserChange(this.userId, 'delete', { email: this.originalEmail });
+
       alert('User deleted!');
+
       this.router.navigate(['/dashboard']);
     }
   }
@@ -73,5 +93,30 @@ export class UserDetailComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard']);
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.fetchHistoryLogs();
+    }
+  }
+
+  fetchHistoryLogs(): void {
+    this.userAdminService.getUserHistory(this.originalEmail).then(
+      (logs: any[]) => {
+        this.historyLogs = logs;
+      },
+      (error: any) => {
+        console.error('Error fetching history logs:', error);
+      }
+    );
+  }
+
+  async deleteHistoryEntry(timestamp: string) {
+    if (confirm('Delete this log entry?')) {
+      await this.userAdminService.deleteUserHistoryEntry(timestamp);
+      this.fetchHistoryLogs(); // reload the view
+    }
   }
 }

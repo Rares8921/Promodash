@@ -1,3 +1,7 @@
+/**
+ * withdrawal.jsx - Implements the Factory Pattern
+ * Creates payment method components dynamically
+ */
 import { useState, useContext, useMemo } from "react";
 import { 
   View, 
@@ -15,6 +19,76 @@ import { useRouter } from "expo-router";
 import { ThemeContext } from "../context/ThemeContext";
 import { UserContext } from "../context/UserContext";
 import i18n from "../../i18n";
+
+// Factory Pattern Implementation
+class PaymentMethodCreator {
+  // Factory method to create payment method components
+  static createPaymentMethod(type, icon, onPress, theme) {
+    // Return different payment method components based on type
+    switch (type) {
+      case "Visa":
+      case "MasterCard":
+        return {
+          component: (
+            <TouchableOpacity 
+              style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]} 
+              onPress={onPress}
+            >
+              <Image source={icon} style={styles.methodIcon} />
+              <Text style={[styles.methodText, theme === "Dark" && { color: "#fff" }]}>{type}</Text>
+            </TouchableOpacity>
+          ),
+          type
+        };
+      case "BCR":
+        return {
+          component: (
+            <TouchableOpacity 
+              style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]} 
+              onPress={onPress}
+            >
+              <Image source={icon} style={styles.bcrIcon} />
+              <Text style={[styles.methodText, theme === "Dark" && { color: "#fff" }]}>{type}</Text>
+            </TouchableOpacity>
+          ),
+          type
+        };
+      case "ING":
+        return {
+          component: (
+            <TouchableOpacity 
+              style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]} 
+              onPress={onPress}
+            >
+              <Image source={icon} style={styles.ingIcon} />
+              <Text style={[styles.methodText, theme === "Dark" && { color: "#fff" }]}>{type}</Text>
+            </TouchableOpacity>
+          ),
+          type
+        };
+      default:
+        return {
+          component: (
+            <TouchableOpacity 
+              style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]} 
+              onPress={onPress}
+            >
+              <Image source={icon} style={styles.methodIcon} />
+              <Text style={[styles.methodText, theme === "Dark" && { color: "#fff" }]}>{type}</Text>
+            </TouchableOpacity>
+          ),
+          type
+        };
+    }
+  }
+}
+
+// Component that uses the factory
+function PaymentMethodFactory({ type, icon, onPress }) {
+  const { theme } = useContext(ThemeContext);
+  const { component } = PaymentMethodCreator.createPaymentMethod(type, icon, onPress, theme);
+  return component;
+}
 
 export default function WithdrawalOptionsScreen() {
   const navigation = useNavigation();
@@ -81,6 +155,14 @@ export default function WithdrawalOptionsScreen() {
     );
   }
 
+  const paymentMethods = [
+    { type: "Visa", icon: require("../../assets/images/visa.png"), onPress: () => {} },
+    { type: "MasterCard", icon: require("../../assets/images/mastercard.png"), onPress: () => {} },
+    { type: "Raiffeisen", icon: require("../../assets/images/raiffeisen.png"), onPress: () => {} },
+    { type: "BCR", icon: require("../../assets/images/bcr.png"), onPress: () => {} },
+    { type: "ING", icon: require("../../assets/images/ing.png"), onPress: () => {} },
+  ];
+
   return (
     <View
       style={[
@@ -125,27 +207,15 @@ export default function WithdrawalOptionsScreen() {
           {i18n.t("withdrawal.methods")}
         </Text>
 
-        {/* Metode de plata */}
+        {/* Payment methods using Factory Pattern */}
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={styles.methodScrollContainer}
         >
-          <View style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]}>
-            <Image source={require("../../assets/images/visa.png")} style={styles.methodIcon} />
-          </View>
-          <View style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]}>
-            <Image source={require("../../assets/images/mastercard.png")} style={styles.methodIcon} />
-          </View>
-          <View style={[styles.methodButton, theme === "Dark" && { backgroundColor: "#1E1E1E" }]}>
-            <Image source={require("../../assets/images/raiffeisen.png")} style={styles.methodIcon} />
-          </View>
-          <View style={styles.methodButton}>
-              <Image source={require("../../assets/images/bcr.png")} style={styles.bcrIcon} />
-          </View>
-          <View style={styles.methodButton}>
-              <Image source={require("../../assets/images/ing.png")} style={styles.ingIcon} />
-          </View>
+          {paymentMethods.map((method, index) => (
+            <PaymentMethodFactory key={index} {...method} />
+          ))}
         </ScrollView>
 
         {/* Introducere suma */}
@@ -338,6 +408,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "contain",
+  },
+
+  methodText: {
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
   },
 
   inputContainer: {

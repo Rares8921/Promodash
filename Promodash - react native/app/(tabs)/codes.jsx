@@ -1,15 +1,48 @@
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image, StatusBar } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image, StatusBar, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ThemeContext } from "../context/ThemeContext"; 
+import { UserContext } from "../context/UserContext";
 import i18n from "../../i18n";
+import { getUserId, applyPromoCode } from "../../lib/appwrite"
 
 export default function CodesScreen() {
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext); 
+  const { user, setUser, reloadUser } = useContext(UserContext);
   const isDarkMode = theme === "Dark";
+
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleApplyCode = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+
+    try {
+      await applyPromoCode(code.trim());
+      Alert.alert(i18n.t("codes.success_title"), i18n.t("codes.success_message"));
+      await reloadUser();
+      setTimeout(() => setCode(""), 100);
+    } catch (error) {
+      const msg = error.message;
+      if (msg.includes("Codul nu exista")) {
+        Alert.alert(i18n.t("codes.error_title"), i18n.t("codes.not_found"));
+      } else if (msg.includes("expirat")) {
+        Alert.alert(i18n.t("codes.error_title"), i18n.t("codes.expired"));
+      } else if (msg.includes("utilizari")) {
+        Alert.alert(i18n.t("codes.error_title"), i18n.t("codes.limit_reached"));
+      } else if (msg.includes("authenticated")) {
+        Alert.alert(i18n.t("codes.error_title"), i18n.t("codes.auth_required"));
+      } else {
+        Alert.alert(i18n.t("codes.error_title"), i18n.t("codes.error_default"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View
@@ -68,12 +101,18 @@ export default function CodesScreen() {
             ]}
             placeholder={i18n.t("codes.enter_code")}
             placeholderTextColor={isDarkMode ? "#888" : "#aaa"}
+            value={code}
+            onChangeText={setCode}
+            editable={!loading && !user?.activeCode}
           />
           <TouchableOpacity
             style={[
               styles.applyButton,
               isDarkMode && { backgroundColor: "#333" },
+              user?.activeCode && { backgroundColor: "#ccc" }
             ]}
+            disabled={loading || !!user?.activeCode}
+            onPress={handleApplyCode}
           >
             <Text
               style={[
@@ -93,7 +132,7 @@ export default function CodesScreen() {
               isDarkMode && { color: "#ddd" },
             ]}
           >
-            {i18n.t("codes.active_codes")} (0)
+            {i18n.t("codes.active_codes")} {user?.Active_Code ? `(1)` : `(0)`}
           </Text>
           <View
             style={[
@@ -101,22 +140,41 @@ export default function CodesScreen() {
               isDarkMode && { backgroundColor: "#333" },
             ]}
           />
-          <View style={styles.emptyState}>
-            <Ionicons
-              name="pricetag-outline"
-              size={50}
-              color={isDarkMode ? "#777" : "#bbb"}
-              style={styles.emptyIcon}
-            />
-            <Text
-              style={[
-                styles.emptyText,
-                isDarkMode && { color: "#bbb" },
-              ]}
-            >
-              {i18n.t("codes.no_active_codes")}
-            </Text>
-          </View>
+          {user?.Active_Code ? (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={50}
+                color={isDarkMode ? "#90ee90" : "#00aa00"}
+                style={styles.emptyIcon}
+              />
+              <Text
+                style={[
+                  styles.emptyText,
+                  isDarkMode && { color: "#bbb" },
+                ]}
+              >
+                {i18n.t("codes.active_label")}: {user.Active_Code}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="pricetag-outline"
+                size={50}
+                color={isDarkMode ? "#777" : "#bbb"}
+                style={styles.emptyIcon}
+              />
+              <Text
+                style={[
+                  styles.emptyText,
+                  isDarkMode && { color: "#bbb" },
+                ]}
+              >
+                {i18n.t("codes.no_active_codes")}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </View>
@@ -128,7 +186,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFC",
   },
-
   headerWrapper: {
     backgroundColor: "#2575fc",
     paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 50,
@@ -157,7 +214,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
   },
-
   content: {
     paddingHorizontal: 20,
     marginTop: 20,
@@ -168,7 +224,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
-
   inputContainer: {
     flexDirection: "row",
     borderWidth: 1,
@@ -195,7 +250,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
   },
-
   codesSection: {
     marginTop: 25,
   },
@@ -212,7 +266,6 @@ const styles = StyleSheet.create({
     width: "25%",
     alignSelf: "center",
   },
-
   emptyState: {
     alignItems: "center",
     paddingHorizontal: 20,

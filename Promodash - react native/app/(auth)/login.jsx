@@ -1,6 +1,6 @@
 "use client"
 
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Easing } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Easing, Pressable } from "react-native"
 import { useRouter } from "expo-router"
 import { useState, useContext, useRef, useEffect } from "react"
 import { ThemeContext } from "../context/ThemeContext"
@@ -10,7 +10,8 @@ import i18n from "../../i18n"
 import { GoogleSignin, isSuccessResponse } from "@react-native-google-signin/google-signin"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
-import { Pressable } from "react-native"
+import TwoFAModal from "../../components/TwoFAModal"
+import AsyncStorage from "@react-native-async-storage/async-storage" 
 
 export default function LoginScreen() {
   const fadeAnimAlert = useRef(new Animated.Value(0)).current
@@ -19,7 +20,6 @@ export default function LoginScreen() {
   const { theme } = useContext(ThemeContext)
   const isDarkMode = theme === "Dark"
 
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
@@ -38,7 +38,6 @@ export default function LoginScreen() {
       }),
     ]).start()
 
-    // Start pulsing animation for Google button
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -65,6 +64,9 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [focusedInput, setFocusedInput] = useState(null)
+
+  const [show2FAModal, setShow2FAModal] = useState(false)
+  const [tempUser, setTempUser] = useState(null)
 
   const showCustomAlert = (message) => {
     setAlertMessage(message)
@@ -103,27 +105,30 @@ export default function LoginScreen() {
       await GoogleSignin.signOut()
       const userInfo = await GoogleSignin.signIn()
 
-      if (userInfo?.data === null || userInfo.type !== "success") {
-        return // user a anulat
-      }
+      if (userInfo?.data === null || userInfo.type !== "success") return
 
       if (!isSuccessResponse(userInfo) || !userInfo.data.idToken) {
         throw new Error(i18n.t("login.google_token_fail"))
       }
+
       const idToken = userInfo.data.idToken
       const googleEmail = userInfo.data.user?.email
-      if (!googleEmail) {
-        throw new Error(i18n.t("login.google_email_fail"))
-      }
+      if (!googleEmail) throw new Error(i18n.t("login.google_email_fail"))
 
       const session = await signInWithOAuth2(googleEmail, idToken, null, theme)
-      if (!session) {
-        throw new Error(i18n.t("login.google_sign_up_failed"))
-      }
+      if (!session) throw new Error(i18n.t("login.google_sign_up_failed"))
 
       const userData = await getUserData(session.$id)
-      setUser(userData)
-      router.replace("/(tabs)/")
+
+      const trusted = await AsyncStorage.getItem("trustedDevice")
+      if (userData?.TwoFA && trusted !== "true") {
+        setTempUser(userData)
+        setShow2FAModal(true)
+      } else {
+        setUser(userData)
+        router.replace("/(tabs)/")
+      }
+
     } catch (error) {
       console.error("Google Login Error:", error)
       showCustomAlert(error.message || i18n.t("login.error_generic"))
@@ -143,9 +148,18 @@ export default function LoginScreen() {
           await logout()
           return
         }
+
         const userData = await getUserData(session.$id)
-        setUser(userData)
-        router.replace("/(tabs)/")
+
+        const trusted = await AsyncStorage.getItem("trustedDevice");
+        if (userData?.TwoFA && trusted !== "true") {
+          setTempUser(userData);
+          setShow2FAModal(true);
+        } else {
+          setUser(userData);
+          router.replace("/(tabs)/");
+        }
+
       }
     } catch (error) {
       console.log(error)
@@ -157,15 +171,7 @@ export default function LoginScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? "#121212" : "#f7f9fc" }]}>
-      <Animated.View
-        style={[
-          styles.contentContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
+      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.headerContainer}>
           <LinearGradient
             colors={isDarkMode ? ["#FFD700", "#FFA500"] : ["#4A6FFF", "#2E4BFF"]}
@@ -189,12 +195,7 @@ export default function LoginScreen() {
             },
           ]}
         >
-          <Ionicons
-            name="mail-outline"
-            size={20}
-            color={focusedInput === "email" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"}
-            style={styles.inputIcon}
-          />
+          <Ionicons name="mail-outline" size={20} color={focusedInput === "email" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"} style={styles.inputIcon} />
           <TextInput
             style={[styles.input, { color: isDarkMode ? "#fff" : "#333" }]}
             placeholder={i18n.t("login.email")}
@@ -218,12 +219,7 @@ export default function LoginScreen() {
             },
           ]}
         >
-          <Ionicons
-            name="lock-closed-outline"
-            size={20}
-            color={focusedInput === "password" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"}
-            style={styles.inputIcon}
-          />
+          <Ionicons name="lock-closed-outline" size={20} color={focusedInput === "password" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"} style={styles.inputIcon} />
           <TextInput
             style={[styles.input, { color: isDarkMode ? "#fff" : "#333" }]}
             placeholder={i18n.t("login.password")}
@@ -234,17 +230,12 @@ export default function LoginScreen() {
             onFocus={() => setFocusedInput("password")}
             onBlur={() => setFocusedInput(null)}
           />
-
           <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={20}
-              color={focusedInput === "password" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"}
-            />
+            <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={focusedInput === "password" ? (isDarkMode ? "#FFD700" : "#2E4BFF") : "#aaa"} />
           </TouchableOpacity>
         </View>
 
-        {/* Forgot Password & Resend Verification */}
+        {/* Forgot + Resend */}
         <View style={styles.forgotContainer}>
           <TouchableOpacity onPress={handleForgotPassword}>
             <Text style={[styles.forgotPasswordText, { color: isDarkMode ? "#FFD700" : "#2E4BFF" }]}>
@@ -259,7 +250,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Login Button */}
+        {/* Login */}
         <TouchableOpacity onPress={handleLogin} disabled={loading} style={styles.buttonContainer}>
           <LinearGradient
             colors={loading ? ["#ccc", "#aaa"] : isDarkMode ? ["#FFD700", "#FFA500"] : ["#4A6FFF", "#2E4BFF"]}
@@ -278,10 +269,8 @@ export default function LoginScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Separator & "You can also log in with:" */}
         <Text style={[styles.orText, { color: isDarkMode ? "#bbb" : "#666" }]}>{i18n.t("login.orlogin")}</Text>
 
-        {/* Google Login */}
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <TouchableOpacity
             style={[styles.googleButton, { backgroundColor: isDarkMode ? "#222" : "#fff" }]}
@@ -300,7 +289,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Register */}
         <TouchableOpacity onPress={() => router.push("/(auth)/signup")} style={styles.registerContainer}>
           <Text style={[styles.registerText, { color: isDarkMode ? "#bbb" : "#666" }]}>
             {i18n.t("login.no_account")}{" "}
@@ -340,6 +328,18 @@ export default function LoginScreen() {
           </Pressable>
         )}
       </Animated.View>
+
+      {show2FAModal && tempUser && (
+        <TwoFAModal
+          visible={show2FAModal}
+          email={tempUser.email}
+          onSuccess={() => {
+            setUser(tempUser)
+            setShow2FAModal(false)
+            router.replace("/(tabs)/")
+          }}
+        />
+      )}
     </View>
   )
 }

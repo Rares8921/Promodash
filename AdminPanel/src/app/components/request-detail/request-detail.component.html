@@ -60,4 +60,32 @@
       <button type="submit" [disabled]="emailForm.invalid">Send Email</button>
     </form>
   </div>
+
+  <div class="history-section">
+    <button (click)="toggleHistory()" class="btn btn-primary">
+      {{ showHistory ? 'Hide History' : 'Show History' }}
+    </button>
+
+    <div *ngIf="showHistory" class="history-logs">
+      <h3>History Logs</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Timestamp</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of historyLogs">
+            <td>{{ log.user }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.details }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

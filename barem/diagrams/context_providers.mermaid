@@ -1,0 +1,29 @@
+classDiagram
+    class ThemeContext {
+        +theme: string
+        +toggleTheme(): void
+    }
+    class UserContext {
+        +user: object
+        +setUser(user: object): void
+        +reloadUser(): void
+        +loading: boolean
+    }
+    class LanguageContext {
+        +language: string
+        +changeLanguage(lang: string): void
+        +key: string
+    }
+    class FavoritesContext {
+        +favoriteStores: array
+        +toggleFavoriteStore(store: object): void
+        +getFavoriteStores(): array
+    }
+    App --> ThemeContext
+    App --> UserContext
+    App --> LanguageContext
+    App --> FavoritesContext
+    UserContext --> API
+    FavoritesContext --> API
+    LanguageContext --> i18n
+    ThemeContext --> Colors

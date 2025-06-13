@@ -12,6 +12,7 @@ import { UserDetailComponent } from './components/user-detail/user-detail.compon
 import { RequestDetailComponent } from './components/request-detail/request-detail.component';
 import { ClickDetailComponent } from './components/click-detail/click-detail.component';
 import { WithdrawalDetailComponent } from './components/withdrawal-detail/withdrawal-detail.component';
+import { PromoCodeDetailComponent } from './components/promo-code-detail/promo-code-detail.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -29,7 +30,8 @@ const routes: Routes = [
       { path: 'user-detail/:id', component: UserDetailComponent },
       { path: 'request-detail/:id', component: RequestDetailComponent },
       { path: 'clicks/:id', component: ClickDetailComponent },
-      { path: 'withdrawal/:id', component: WithdrawalDetailComponent }
+      { path: 'withdrawal/:id', component: WithdrawalDetailComponent },
+      { path: 'promo-detail/:id', component: PromoCodeDetailComponent }
     ]
   },
   { path: '**', redirectTo: 'login' }     // Redirect unknown routes to login

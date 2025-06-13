@@ -1,6 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Databases, Client } from 'appwrite';
+import { Databases, Client, ID } from 'appwrite';
 import { environment } from 'src/environments/environment';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +10,9 @@ import { environment } from 'src/environments/environment';
 export class WithdrawalAdminService {
   private client = new Client().setEndpoint(environment.endpoint).setProject(environment.projectId);
   private databases = new Databases(this.client);
+  private apiUrl = 'https://api.example.com';
+
+  constructor(private http: HttpClient) {}
 
   async getWithdrawalById(withdrawalId: string) {
     const response = await this.databases.getDocument(
@@ -33,5 +38,24 @@ export class WithdrawalAdminService {
       environment.withdrawCollectionId,
       withdrawalId
     );
+  }
+
+  async logWithdrawalChange(user: string, action: string, details: any) {
+    const log = {
+      user,
+      action,
+      timestamp: new Date().toISOString(),
+      details
+    };
+    await this.databases.createDocument(
+      environment.dataBaseId,
+      environment.historyCollectionId,
+      ID.unique(),
+      log
+    );
+  }
+
+  getWithdrawalHistory(withdrawalId: string): Promise<any[]> {
+    return firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/withdrawals/${withdrawalId}/history`));
   }
 }

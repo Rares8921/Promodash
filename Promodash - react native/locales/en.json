@@ -45,7 +45,17 @@
         "enter_code": "Enter code",
         "apply": "Apply",
         "active_codes": "ACTIVE",
-        "no_active_codes": "No active Codes yet. Stay tuned for codes and new promo giveaways."
+        "active_label": "Applied code",
+        "no_active_codes": "You don't have any active code right now.",
+        "success_title": "Code applied",
+        "success_message": "Nice! Your code has been activated.",
+        "error_title": "Oops",
+        "error_default": "Something went wrong. Please try again.",
+        "not_found": "The code you entered does not exist.",
+        "expired": "The promo code has expired.",
+        "limit_reached": "Promo code usage limit reached.",
+        "auth_required": "You must be authenticated to apply a promo code.",
+        "already_active": "You already have an active promo code."
     },
     "conditions": {
         "title": "Withdrawal Conditions",
@@ -195,9 +205,22 @@
         "alerts": {
             "name_too_short": "Name must be at least 3 characters long!",
             "invalid_email": "Invalid email format!",
-            "update_success": "{{field}} updated successfully!"
+            "update_success": "{{field}} updated successfully!",
+            "generic_error": "Something went wrong. Try again."
         },
-        "reset_password": "Reset password"
+        "reset_password": "Reset password",
+        "security": "Security",
+        "enable_2fa": "Enable 2FA",
+        "2fa_enabled": "2FA enabled",
+        "2fa_disabled": "2FA disabled",
+        "delete_active_code": "Delete active code",
+        "confirm_delete_active_code": "Are you sure you want to delete the active code?",
+        "active_code_deleted": "Promo code deleted successfully.",
+        "active_code": "Active code",
+        "delete_current_code": "Delete current code",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "expires_at": "Expires at"
     },
     "store_details": {
         "error_title": "Error",
@@ -356,7 +379,8 @@
         "back_to_login": "Back to Login"
     },
     "general": {
-        "loading": "Loading.."
+        "loading": "Loading..",
+        "captcha": "Captcha failed. Please try again."
     },
     "appwrite": {
         "account_creation": "The account creation failed. Try again or contact support: promodashcs@gmail.com",
@@ -366,7 +390,44 @@
         "click_fail": "There was an issue in processing your purchase request. Please contact us: promodashcs@gmail.com",
         "user_update_fail": "There was an issue in updating your account. Please contact us: promodashcs@gmail.com",
         "request_send_fail": "Your request could not be sent. If the error persists, contact us at: promodashcs@gmail.com",
-        "google_login_fail": "This is a google account. So, please use the google login button."
+        "google_login_fail": "This is a google account. So, please use the google login button.",
+        "unregistered_account": "This account is not registered."
+    },
+    "extra_authentication": {
+        "biometric_option": "Biometric authentication",
+        "password_option": "Enter password",
+        "authentication_fail": "Authentication failed",
+        "authentication_fail_message": "The authentication couldn't work this time. Try using another method",
+        "close_modal_message": "Try another method",
+        "continue": "Continue",
+        "empty_password": "Please enter the PIN to continue.",
+        "wrong_password": "Incorrect PIN. Try again.",
+        "too_many_attempts": "Too many attempts",
+        "too_many_attempts_message": "You’ve entered the wrong PIN 3 times. The app will now close.",
+        "pin_section_title": "Set your access PIN",
+        "pin_section_title_edit": "Change your access PIN",
+        "pin_new": "New PIN",
+        "pin_confirm": "Confirm PIN",
+        "pin_saved_success": "PIN saved successfully",
+        "pin_saved_error": "Error saving the PIN",
+        "pin_not_match": "PINs do not match",
+        "pin_invalid_length": "PIN must be exactly 6 digits",
+        "pin_missing": "Authentication failed",
+        "pin_old": "Old PIN",
+        "active": "activated",
+        "non_active": "deactivated",
+        "change_pin_title": "Change PIN",
+        "set_pin_title": "Set a new PIN",
+        "enter_current_pin": "Enter current PIN",
+        "enter_new_pin": "Enter new PIN",
+        "confirm_new_pin": "Confirm new PIN",
+        "pin_wrong": "Current PIN is wrong"
+    },
+    "2fa": {
+        "enter_code": "Enter the code sent to your email",
+        "resend": "Resend code",
+        "code_expired": "Invalid or expired code",
+        "trusted_device": "Don't ask again on this device"
     }
 }
   

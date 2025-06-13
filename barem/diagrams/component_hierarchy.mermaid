@@ -1,0 +1,140 @@
+classDiagram
+    class App {
+        +Layout
+        +ThemeProvider
+        +UserProvider
+        +LanguageProvider
+        +FavoritesProvider
+        +initializeApp(): void
+        +handleDeepLink(): void
+    }
+    App --> SplashScreen
+    App --> TabsLayout
+
+    class SplashScreen {
+        +onFinish(): void
+        +showSplash: boolean
+        +loading: boolean
+    }
+
+    class TabsLayout {
+        +TabNavigator
+        +screens: object
+        +initializeTabs(): void
+    }
+    TabsLayout --> TabNavigator
+
+    class TabNavigator {
+        +theme: string
+        +key: string
+        +screenOptions: object
+        +renderTabs(): void
+    }
+    TabNavigator --> IndexScreen
+    TabNavigator --> InviteScreen
+    TabNavigator --> AccountScreen
+    TabNavigator --> WithdrawalOptionsScreen
+    TabNavigator --> StoreDetailsScreen
+    TabNavigator --> ProductsScreen
+    TabNavigator --> CodesScreen
+    TabNavigator --> ConditionsScreen
+    TabNavigator --> HelpScreen
+    TabNavigator --> SettingsScreen
+    TabNavigator --> PrivacyPolicyScreen
+    TabNavigator --> TermsOfUseScreen
+    TabNavigator --> CampaignsScreen
+    TabNavigator --> MyRequestsScreen
+    TabNavigator --> RequestDetailsScreen
+    TabNavigator --> RequestNotScreen
+
+    class IndexScreen {
+        +categories: array
+        +searchQuery: string
+        +filterStores(): void
+        +toggleFavoriteStore(): void
+    }
+
+    class InviteScreen {
+        +inviteCount: number
+        +bonusContainer: object
+        +sendInvite(): void
+    }
+
+    class AccountScreen {
+        +user: object
+        +logout(): void
+        +renderOptions(): void
+    }
+
+    class WithdrawalOptionsScreen {
+        +withdrawAmount: number
+        +userBalance: number
+        +methods: array
+        +handleWithdraw(): void
+        +navigateToConditions(): void
+    }
+
+    class StoreDetailsScreen {
+        +store: object
+        +affiliateLink: string
+        +toggleFavorite(): void
+        +fetchAffiliateLink(): void
+    }
+
+    class ProductsScreen {
+        +categories: array
+        +selectedCategory: string
+        +renderProductCards(): void
+    }
+
+    class CodesScreen {
+        +activeCodes: array
+        +scanQRCode(): void
+        +applyCode(): void
+    }
+
+    class ConditionsScreen {
+        +conditions: array
+        +renderConditions(): void
+    }
+
+    class HelpScreen {
+        +contactOptions: array
+        +navigateToContact(): void
+    }
+
+    class SettingsScreen {
+        +theme: string
+        +language: string
+        +updateSettings(): void
+    }
+
+    class PrivacyPolicyScreen {
+        +policyText: string
+        +renderPolicy(): void
+    }
+
+    class TermsOfUseScreen {
+        +termsText: string
+        +renderTerms(): void
+    }
+
+    class CampaignsScreen {
+        +campaigns: array
+        +renderCampaigns(): void
+    }
+
+    class MyRequestsScreen {
+        +requests: array
+        +renderRequests(): void
+    }
+
+    class RequestDetailsScreen {
+        +request: object
+        +renderRequestDetails(): void
+    }
+
+    class RequestNotScreen {
+        +notifications: array
+        +renderNotifications(): void
+    }

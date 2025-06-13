@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Databases, Client } from 'appwrite';
+import { Databases, Client, ID, Query } from 'appwrite';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -31,4 +31,27 @@ export class RequestAdminService {
     await this.databases.deleteDocument(this.dataBaseId, this.requestCollectionId, id);
   }
   
+  async logRequestChange(user: string, action: string, details: any) {
+    const log = {
+      user,
+      action,
+      timestamp: new Date().toISOString(),
+      details
+    };
+    await this.databases.createDocument(
+      this.dataBaseId,
+      environment.historyCollectionId,
+      ID.unique(),
+      log
+    );
+  }
+
+  async getRequestHistory(requestId: string) {
+    const logs = await this.databases.listDocuments(
+      this.dataBaseId,
+      environment.historyCollectionId,
+      [Query.equal('entityId', requestId)]
+    );
+    return logs.documents;
+  }
 }

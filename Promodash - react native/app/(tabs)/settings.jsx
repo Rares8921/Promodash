@@ -1,5 +1,17 @@
-import { useState, useEffect, useContext } from "react";
+/**
+ * Settings Screen Component
+ * 
+ * Provides user interface for managing application settings including:
+ * - User profile (name, email)
+ * - Application theme
+ * - Security settings (2FA, PIN, biometric)
+ * - Notifications
+ * - Language preferences
+ * - Active promo code management
+ */
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
+  Alert,
   View,
   Text,
   TouchableOpacity,
@@ -14,59 +26,134 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import { ThemeContext } from "../context/ThemeContext";
 import { UserContext } from "../context/UserContext";
-import { updateUserData } from "../../lib/appwrite";
+import { updateUserData, getPromoDetails } from "../../lib/appwrite";
 import i18n from "../../i18n";
 import { LanguageContext } from "../context/LanguageContext";
+import {
+  isBiometricAvailable,
+  getSupportedBiometricType,
+  saveBiometricPreference,
+  loadBiometricPreference
+} from "../../lib/biometricUtils";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-
-  const { user, setUser, loading } = useContext(UserContext);
+  const router = useRouter();
+  
+  // Context hooks
+  const { user, setUser, loading, reloadUser } = useContext(UserContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { language, changeLanguage } = useContext(LanguageContext);
 
-  const router = useRouter();
-
-  // State-uri locale pentru user settings
+  // User settings state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [appTheme, setAppTheme] = useState("Light");
   const [notifications, setNotifications] = useState(false);
+  
+  // Biometric authentication state
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricType, setBiometricType] = useState(null);
 
-  // Alert personalizat
+  // PIN management state
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [hasPin, setHasPin] = useState(false);
+  const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [tempPin, setTempPin] = useState("");
+  const [tempPinConfirm, setTempPinConfirm] = useState("");
+
+  // Active promo code state
+  const [activeCodeDetails, setActiveCodeDetails] = useState(null);
+
+  // Custom alert state and animation
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const fadeAnimAlert = useState(new Animated.Value(0))[0];
-
-  // Animare header (fade in)
+  
+  // Header animation
   const fadeAnimHeader = useState(new Animated.Value(0))[0];
 
+  // Derived state
+  const shouldShowChangePin = hasPin;
+  const shouldShowSetPin = !hasPin;
+  const isExpired = activeCodeDetails && new Date(activeCodeDetails.expirationDate) < new Date();
+
+  /**
+   * Initialize user data and animations when user data is available
+   */
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setEmail(user.email || "");
       setAppTheme(user.theme || "Light");
       setNotifications(user.notifications || false);
-      if (user.theme && user.theme !== theme) {
-        toggleTheme(user.theme);
-      }
+      
     }
 
+    setHasPin(!!user?.pin);
 
+    // Animate header with fade-in effect
     Animated.timing(fadeAnimHeader, {
       toValue: 1,
       duration: 500,
       easing: Easing.inOut(Easing.ease),
       useNativeDriver: true
     }).start();
+
+    // Initialize biometric authentication
+    const initBiometrics = async () => {
+      const available = await isBiometricAvailable();
+      if (!available) return;
+      
+      const type = await getSupportedBiometricType();
+      const stored = await loadBiometricPreference();
+      
+      setBiometricEnabled(stored.enabled ?? false);
+      setBiometricType(type);
+    };
+
+    initBiometrics();
+  }, [user, theme, toggleTheme, fadeAnimHeader]);
+
+  /**
+   * Update PIN status when user data changes
+   */
+  useEffect(() => {
+    setHasPin(!!user?.pin);
   }, [user]);
 
-  const showCustomAlert = (message) => {
-    setAlertMessage(message.charAt(0).toUpperCase() + message.slice(1));
+  /**
+   * Fetch active promo code details when code changes
+   */
+  useEffect(() => {
+    const fetchActiveCodeDetails = async () => {
+      if (!user?.Active_Code) return;
+
+      try {
+        const promo = await getPromoDetails(user.Active_Code);
+        if (promo) setActiveCodeDetails(promo);
+      } catch (error) {
+        console.error("Failed to fetch promo details:", error);
+      }
+    };
+
+    fetchActiveCodeDetails();
+  }, [user?.Active_Code]);
+
+  /**
+   * Display a custom alert message with animation
+   * @param {string} message - The message to display
+   */
+  const showCustomAlert = useCallback((message) => {
+    // Capitalize first letter of message
+    const formattedMessage = message.charAt(0).toUpperCase() + message.slice(1);
+    
+    setAlertMessage(formattedMessage);
     setAlertVisible(true);
     fadeAnimAlert.setValue(0);
 
@@ -76,68 +163,109 @@ export default function SettingsScreen() {
       useNativeDriver: true
     }).start();
 
+    // Auto-hide after delay
     setTimeout(() => hideCustomAlert(), 3000);
-  };
+  }, [fadeAnimAlert]);
 
-  const hideCustomAlert = () => {
+  /**
+   * Hide the custom alert with animation
+   */
+  const hideCustomAlert = useCallback(() => {
     Animated.timing(fadeAnimAlert, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true
     }).start(() => setAlertVisible(false));
-  };
+  }, [fadeAnimAlert]);
 
-  const validateEmail = (emailValue) => {
-    const emailRegex =
-      /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+  /**
+   * Validate email format
+   * @param {string} emailValue - Email to validate
+   * @returns {boolean} - Whether email is valid
+   */
+  const validateEmail = useCallback((emailValue) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailValue);
-  };
+  }, []);
 
-  const handleUpdate = async (field, value) => {
+  /**
+   * Format ISO date to DD.MM.YYYY format
+   * @param {string} isoDate - ISO date string
+   * @returns {string} - Formatted date
+   */
+  const formatDate = useCallback((isoDate) => {
+    const date = new Date(isoDate);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+  }, []);
+
+  /**
+   * Update user data field
+   * @param {string} field - Field name to update
+   * @param {any} value - New value
+   */
+  const handleUpdate = useCallback(async (field, value) => {
+    // Validate input
     if (field === "Name" && value.length < 3) {
       showCustomAlert(i18n.t("settings.alerts.name_too_short"));
       return;
     }
+    
     if (field === "email" && !validateEmail(value)) {
       showCustomAlert(i18n.t("settings.alerts.invalid_email"));
       return;
     }
 
-    // Trimite update la backend
-    const success = await updateUserData(field, value);
-    if (success) {
-      setUser((prevUser) => {
-        if (!prevUser) return null;
-        return {
-          ...prevUser,
-          [field.toLowerCase()]: value
-        };
-      });
+    try {
+      // Update backend data
+      const success = await updateUserData(field, value);
+      
+      if (success) {
+        // Update local state
+        setUser((prevUser) => {
+          if (!prevUser) return null;
+          return {
+            ...prevUser,
+            [field.toLowerCase()]: value
+          };
+        });
 
-      showCustomAlert(
-        i18n.t("settings.alerts.update_success", {
-          field: i18n.t(`settings.${field.toLowerCase()}`)
-        })
-      );
+        showCustomAlert(
+          i18n.t("settings.alerts.update_success", {
+            field: i18n.t(`settings.${field.toLowerCase()}`)
+          })
+        );
+      }
+    } catch (error) {
+      console.error(`Failed to update ${field}:`, error);
+      showCustomAlert(i18n.t("settings.alerts.generic_error"));
     }
-  };
+  }, [setUser, showCustomAlert, validateEmail]);
 
-  const handleThemeChange = () => {
+  /**
+   * Toggle between light and dark theme
+   */
+  const handleThemeChange = useCallback(() => {
     const newTheme = appTheme === "Light" ? "Dark" : "Light";
-    setAppTheme(newTheme);
-
-    handleUpdate("Theme", newTheme);
-
     toggleTheme(newTheme);
-  };
+    handleUpdate("Theme", newTheme);
+  }, [appTheme, handleUpdate, toggleTheme]);
 
-  const handleNotificationsChange = () => {
+  /**
+   * Toggle notification settings
+   */
+  const handleNotificationsChange = useCallback(() => {
     const newNotificationStatus = !notifications;
     setNotifications(newNotificationStatus);
     handleUpdate("Notifications", newNotificationStatus);
-  };
+  }, [notifications, handleUpdate]);
 
-  const handleLanguageChange = async () => {
+  /**
+   * Toggle between available languages
+   */
+  const handleLanguageChange = useCallback(async () => {
     const newLanguage = language === "en" ? "ro" : "en";
     changeLanguage(newLanguage);
     i18n.locale = newLanguage;
@@ -145,38 +273,165 @@ export default function SettingsScreen() {
     showCustomAlert(
       i18n.t("settings.alerts.update_success", { field: i18n.t("settings.language") })
     );
-  };
+  }, [language, changeLanguage, showCustomAlert]);
 
-  const handleUpdateEmail = async () => {
+  /**
+   * Send email change confirmation
+   */
+  const handleUpdateEmail = useCallback(async () => {
     if (!validateEmail(email)) {
       showCustomAlert(i18n.t("settings.alerts.invalid_email"));
       return;
     }
       
-    fetch(`https://promodash.vercel.app/api/send_email_change_confirmation_current_webhook`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        currentEmail: user.email,
-        newEmail: email
-      })
-    })
-    .then((response) => response.json())
-    .then((data) => {
+    try {
+      const response = await fetch(
+        "https://promodash.vercel.app/api/send_email_change_confirmation_current_webhook", 
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            currentEmail: user.email,
+            newEmail: email
+          })
+        }
+      );
+      
+      const data = await response.json();
+      
       if (data.success) {
         showCustomAlert("Email de confirmare trimis către adresa curentă.");
       } else {
         showCustomAlert("Eroare la trimiterea emailului de confirmare.");
       }
-    })
-    .catch((error) => {
-      console.error("Eroare:", error);
+    } catch (error) {
+      console.error("Error sending confirmation email:", error);
       showCustomAlert("Eroare la trimiterea emailului de confirmare.");
-    });
-  };
+    }
+  }, [email, user?.email, validateEmail, showCustomAlert]);
 
+  /**
+   * Toggle biometric authentication
+   */
+  const toggleBiometric = useCallback(async () => {
+    const newValue = !biometricEnabled;
+
+    if (newValue || hasPin) {
+      setHasPin(!!user?.pin);
+      setShowPinPrompt(true);
+    }
+
+    setBiometricEnabled(newValue);
+    await saveBiometricPreference(newValue, biometricType);
+    
+    showCustomAlert(
+      newValue
+        ? i18n.t("extra_authentication.biometric_option") + " " + i18n.t("extra_authentication.active")
+        : i18n.t("extra_authentication.biometric_option") + " " + i18n.t("extra_authentication.non_active")
+    );
+  }, [biometricEnabled, biometricType, hasPin, user?.pin, showCustomAlert]);
+
+  /**
+   * Delete the active promo code
+   */
+  const handleDeleteActiveCode = useCallback(() => {
+    if (!user?.Active_Code) return;
+
+    Alert.alert(
+      i18n.t("settings.confirm_delete_active_code"),
+      "",
+      [
+        {
+          text: i18n.t("settings.cancel"),
+          style: "cancel"
+        },
+        {
+          text: i18n.t("settings.delete"),
+          style: theme === "Dark" ? "destructive" : "default",
+          onPress: async () => {
+            try {
+              const success = await updateUserData("Active_Code", "");
+              if (success) {
+                await reloadUser();
+                showCustomAlert(i18n.t("settings.active_code_deleted"));
+              } else {
+                showCustomAlert(i18n.t("settings.alerts.generic_error"));
+              }
+            } catch (error) {
+              console.error("Failed to delete active code:", error);
+              showCustomAlert(i18n.t("settings.alerts.generic_error"));
+            }
+          }
+        }
+      ],
+      { cancelable: true }
+    );
+  }, [user?.Active_Code, theme, reloadUser, showCustomAlert]);
+
+  /**
+   * Confirm PIN and enable biometric authentication
+   */
+  const confirmAndEnableBiometric = useCallback(async () => {
+    // Validate current PIN if user has one
+    if (hasPin && pin !== user.pin) {
+      showCustomAlert(i18n.t("extra_authentication.pin_wrong"));
+      return;
+    }
+
+    // Validate PIN length
+    if (tempPin.length !== 6 || (!hasPin && tempPinConfirm.length !== 6)) {
+      showCustomAlert(i18n.t("extra_authentication.pin_invalid_length"));
+      return;
+    }
+
+    // Validate PIN confirmation matches
+    if (!hasPin && tempPin !== tempPinConfirm) {
+      showCustomAlert(i18n.t("extra_authentication.pin_not_match"));
+      return;
+    }
+
+    try {
+      // Update PIN in backend
+      const success = await updateUserData("pin", tempPin);
+      
+      if (success) {
+        await reloadUser();
+        setUser((prev) => ({ ...prev, pin: tempPin }));
+        setHasPin(true);
+        
+        // Reset PIN fields
+        setPin("");
+        setTempPin("");
+        setTempPinConfirm("");
+        setShowPinPrompt(false);
+        
+        // Enable biometric authentication
+        setBiometricEnabled(true);
+        await saveBiometricPreference(true, biometricType);
+
+        showCustomAlert(i18n.t("extra_authentication.pin_saved_success"));
+      } else {
+        showCustomAlert(i18n.t("extra_authentication.pin_saved_error"));
+      }
+    } catch (error) {
+      console.error("Failed to update PIN:", error);
+      showCustomAlert(i18n.t("extra_authentication.pin_saved_error"));
+    }
+  }, [
+    hasPin, 
+    pin, 
+    user?.pin, 
+    tempPin, 
+    tempPinConfirm, 
+    biometricType, 
+    reloadUser, 
+    setUser, 
+    showCustomAlert
+  ]);
+
+  // Show loading state while user data is being fetched
   if (loading) {
     return (
       <View
@@ -203,13 +458,17 @@ export default function SettingsScreen() {
       style={[styles.container, theme === "Dark" && { backgroundColor: "#121212" }]}
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}> 
-        {/* Header cu fade-in */}
+        {/* Header with animated fade-in effect */}
         <Animated.View style={{ opacity: fadeAnimHeader }}>
           <LinearGradient
             colors={theme === "Dark" ? ["#121212", "#1E1E1E"] : ["#2575fc", "#4c8bf5"]}
             style={styles.header}
           >
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              style={styles.backButton}
+              accessibilityLabel={i18n.t("accessibility.back")}
+            >
               <Ionicons name="arrow-back" size={26} color={"#fff"} />
             </TouchableOpacity>
 
@@ -217,13 +476,17 @@ export default function SettingsScreen() {
               {i18n.t("settings.title")}
             </Text>
 
-            <TouchableOpacity onPress={() => {}} style={styles.settingsButton}>
+            <TouchableOpacity 
+              onPress={() => {}} 
+              style={styles.settingsButton}
+              accessibilityLabel={i18n.t("accessibility.settings")}
+            >
               <Ionicons name="settings-outline" size={24} color={"#fff"} />
             </TouchableOpacity>
           </LinearGradient>
         </Animated.View>
 
-        {/* User Info */}
+        {/* User Profile Section */}
         <View
           style={[
             styles.section,
@@ -241,8 +504,13 @@ export default function SettingsScreen() {
               ]}
               value={name}
               onChangeText={setName}
+              accessibilityLabel={i18n.t("accessibility.name_input")}
             />
-            <TouchableOpacity style={styles.changeButton} onPress={() => handleUpdate("Name", name)}>
+            <TouchableOpacity 
+              style={styles.changeButton} 
+              onPress={() => handleUpdate("Name", name)}
+              accessibilityLabel={i18n.t("accessibility.save_name")}
+            >
               <Text
                 style={[
                   styles.changeButtonText,
@@ -255,6 +523,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Email Section */}
         <View
           style={[
             styles.section,
@@ -272,8 +541,15 @@ export default function SettingsScreen() {
               ]}
               value={email}
               onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              accessibilityLabel={i18n.t("accessibility.email_input")}
             />
-            <TouchableOpacity style={styles.changeButton} onPress={handleUpdateEmail}>
+            <TouchableOpacity 
+              style={styles.changeButton} 
+              onPress={handleUpdateEmail}
+              accessibilityLabel={i18n.t("accessibility.save_email")}
+            >
               <Text
                 style={[
                   styles.changeButtonText,
@@ -286,7 +562,54 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Theme Selection */}
+        {/* Active Promo Code Section */}
+        {user?.Active_Code && (
+          <View
+            style={[
+              styles.section,
+              theme === "Dark" && { backgroundColor: "#1E1E1E", borderColor: "#333" }
+            ]}
+          >
+            <Text style={[
+              styles.sectionTitle,
+              { color: theme === "Dark" ? "#FFD700" : "#2575fc", marginBottom: 6 }
+            ]}>
+              {i18n.t("settings.active_code")}
+            </Text>
+
+            {activeCodeDetails?.expirationDate && (
+              <Text style={{ color: theme === "Dark" ? "#ccc" : "#666", marginBottom: 12 }}>
+                {i18n.t("settings.expires_at")}: {formatDate(activeCodeDetails.expirationDate)}
+              </Text>
+            )}
+
+            <Text style={{ color: theme === "Dark" ? "#fff" : "#000", marginBottom: 12 }}>
+              {user.Active_Code}
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleDeleteActiveCode}
+              style={{
+                backgroundColor: theme === "Dark" ? "#333" : "#eee",
+                padding: 10,
+                borderRadius: 8,
+                alignItems: "center"
+              }}
+              disabled={!isExpired}
+              accessibilityLabel={i18n.t("accessibility.delete_code")}
+              accessibilityState={{ disabled: !isExpired }}
+            >
+              <Text style={{
+                color: theme === "Dark" ? "#FFD700" : "#d11a2a",
+                fontWeight: "bold"
+              }}>
+                {i18n.t("settings.delete_current_code")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Theme Selection Section */}
         <View
           style={[
             styles.section,
@@ -296,7 +619,12 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: theme === "Dark" ? "#FFD700" : "#2575fc" }]}>
             {i18n.t("settings.app_settings")}
           </Text>
-          <TouchableOpacity style={styles.optionItem} onPress={handleThemeChange}>
+          <TouchableOpacity 
+            style={styles.optionItem} 
+            onPress={handleThemeChange}
+            accessibilityLabel={i18n.t("accessibility.toggle_theme")}
+            accessibilityRole="button"
+          >
             <Text style={[styles.optionText, theme === "Dark" && { color: "#fff" }]}>
               {i18n.t("settings.theme")}
             </Text>
@@ -306,7 +634,50 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Notifications Toggle */}
+        {/* Security Section - 2FA */}
+        <View
+          style={[
+            styles.section,
+            theme === "Dark" && { backgroundColor: "#1E1E1E", borderColor: "#333" }
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme === "Dark" ? "#FFD700" : "#2575fc" }]}>
+            {i18n.t("settings.security")}
+          </Text>
+
+          <View style={styles.optionItem}>
+            <Text style={[styles.optionText, theme === "Dark" && { color: "#fff" }]}>
+              {i18n.t("settings.enable_2fa")}
+            </Text>
+            <Switch
+              value={user?.TwoFA ?? false}
+              onValueChange={async (value) => {
+                try {
+                  await AsyncStorage.setItem("last2FAChange", Date.now().toString());
+                  await updateUserData("TwoFA", value);
+                  setUser((prev) => ({ ...prev, TwoFA: value }));
+                  showCustomAlert(
+                    i18n.t(value ? "settings.2fa_enabled" : "settings.2fa_disabled")
+                  );
+                } catch (e) {
+                  console.error("Failed to update 2FA:", e);
+                  showCustomAlert("Failed to update 2FA.");
+                } finally {
+                  // Clean up temporary storage
+                  setTimeout(() => {
+                    AsyncStorage.removeItem("last2FAChange");
+                  }, 2500);
+                }
+              }}
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={user?.TwoFA ? "#2575fc" : "#f4f3f4"}
+              accessibilityLabel={i18n.t("accessibility.toggle_2fa")}
+              accessibilityRole="switch"
+            />
+          </View>
+        </View>
+
+        {/* Notifications Section */}
         <View
           style={[
             styles.section,
@@ -325,11 +696,13 @@ export default function SettingsScreen() {
               onValueChange={handleNotificationsChange}
               trackColor={{ false: "#767577", true: "#81b0ff" }}
               thumbColor={notifications ? "#2575fc" : "#f4f3f4"}
+              accessibilityLabel={i18n.t("accessibility.toggle_notifications")}
+              accessibilityRole="switch"
             />
           </View>
         </View>
 
-        {/* Language */}
+        {/* Language Section */}
         <View
           style={[
             styles.section,
@@ -339,7 +712,12 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: theme === "Dark" ? "#FFD700" : "#2575fc" }]}>
             {i18n.t("settings.language")}
           </Text>
-          <TouchableOpacity style={styles.optionItem} onPress={handleLanguageChange}>
+          <TouchableOpacity 
+            style={styles.optionItem} 
+            onPress={handleLanguageChange}
+            accessibilityLabel={i18n.t("accessibility.change_language")}
+            accessibilityRole="button"
+          >
             <Text style={[styles.optionText, theme === "Dark" && { color: "#fff" }]}>
               {i18n.t("settings.language")}
             </Text>
@@ -349,6 +727,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Password Reset Section */}
         <TouchableOpacity
           style={[
             styles.section,
@@ -358,15 +737,21 @@ export default function SettingsScreen() {
           onPress={() => {
             router.push("/(auth)/forgot-password");
           }}
+          accessibilityLabel={i18n.t("accessibility.reset_password")}
+          accessibilityRole="button"
         >
           <Text style={[styles.resetButtonText, theme === "Dark" && { color: "#FFD700" }]}>
             {i18n.t("settings.reset_password")}
           </Text>
         </TouchableOpacity>
 
-        {/* Custom Alert */}
+        {/* Custom Alert Component */}
         {alertVisible && (
-          <Pressable style={styles.alertContainer} onPress={hideCustomAlert}>
+          <Pressable 
+            style={styles.alertContainer} 
+            onPress={hideCustomAlert}
+            accessibilityLabel={i18n.t("accessibility.dismiss_alert")}
+          >
             <Animated.View
               style={[
                 styles.alertBox,
@@ -385,11 +770,138 @@ export default function SettingsScreen() {
             </Animated.View>
           </Pressable>
         )}
+
+        {/* Biometric Authentication Section */}
+        {biometricType && (
+          <View
+            style={[
+              styles.section,
+              theme === "Dark" && { backgroundColor: "#1E1E1E", borderColor: "#333" }
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: theme === "Dark" ? "#FFD700" : "#2575fc" }]}>
+              {i18n.t("extra_authentication.biometric_option")}
+            </Text>
+            <View style={styles.optionItem}>
+              <Text style={[styles.optionText, theme === "Dark" && { color: "#fff" }]}>
+                {biometricType === "face" ? "Face ID" : "Fingerprint"}
+              </Text>
+              <Switch
+                value={biometricEnabled}
+                onValueChange={toggleBiometric}
+                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                thumbColor={biometricEnabled ? "#2575fc" : "#f4f3f4"}
+                accessibilityLabel={i18n.t("accessibility.toggle_biometric")}
+                accessibilityRole="switch"
+              />
+            </View>
+
+            {/* PIN Management Section */}
+            {(biometricEnabled || hasPin) && (
+              <View style={{ marginTop: 16 }}>
+                <Text style={[styles.sectionTitle, {
+                  color: theme === "Dark" ? "#FFD700" : "#2575fc",
+                  marginBottom: 10
+                }]}>
+                  {hasPin
+                    ? i18n.t("extra_authentication.change_pin_title")
+                    : i18n.t("extra_authentication.set_pin_title")}
+                </Text>
+
+                {/* Current PIN Input (for changing existing PIN) */}
+                {hasPin && (
+                  <TextInput
+                    placeholder={i18n.t("extra_authentication.enter_current_pin")}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    secureTextEntry
+                    value={pin}
+                    onChangeText={setPin}
+                    style={[
+                      styles.input,
+                      { marginBottom: 10 },
+                      theme === "Dark" && {
+                        backgroundColor: "#1E1E1E",
+                        color: "#fff",
+                        borderColor: "#444"
+                      }
+                    ]}
+                    placeholderTextColor={theme === "Dark" ? "#888" : "#aaa"}
+                    accessibilityLabel={i18n.t("accessibility.current_pin")}
+                  />
+                )}
+
+                {/* New PIN Input */}
+                <TextInput
+                  placeholder={i18n.t("extra_authentication.enter_new_pin")}
+                  keyboardType="numeric"
+                  maxLength={6}
+                  secureTextEntry
+                  value={tempPin}
+                  onChangeText={setTempPin}
+                  style={[
+                    styles.input,
+                    { marginBottom: shouldShowSetPin ? 10 : 0 },
+                    theme === "Dark" && {
+                      backgroundColor: "#1E1E1E",
+                      color: "#fff",
+                      borderColor: "#444"
+                    }
+                  ]}
+                  placeholderTextColor={theme === "Dark" ? "#888" : "#aaa"}
+                  accessibilityLabel={i18n.t("accessibility.new_pin")}
+                />
+
+                {/* Confirm PIN Input (only when setting new PIN) */}
+                {shouldShowSetPin && (
+                  <TextInput
+                    placeholder={i18n.t("extra_authentication.confirm_new_pin")}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    secureTextEntry
+                    value={tempPinConfirm}
+                    onChangeText={setTempPinConfirm}
+                    style={[
+                      styles.input,
+                      theme === "Dark" && {
+                        backgroundColor: "#1E1E1E",
+                        color: "#fff",
+                        borderColor: "#444"
+                      }
+                    ]}
+                    placeholderTextColor={theme === "Dark" ? "#888" : "#aaa"}
+                    accessibilityLabel={i18n.t("accessibility.confirm_pin")}
+                  />
+                )}
+
+                {/* Save PIN Button */}
+                <TouchableOpacity
+                  onPress={confirmAndEnableBiometric}
+                  style={{ marginTop: 10, alignSelf: "flex-end" }}
+                  accessibilityLabel={i18n.t("accessibility.save_pin")}
+                  accessibilityRole="button"
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: theme === "Dark" ? "#FFD700" : "#2575fc"
+                    }}
+                  >
+                    {i18n.t("extra_authentication.continue")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
 
+/**
+ * Component styles
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -517,7 +1029,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600"
   },
-
   resetButton: {
     justifyContent: "center",
     alignItems: "center",
@@ -528,5 +1039,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  
 });

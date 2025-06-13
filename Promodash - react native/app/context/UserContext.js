@@ -1,3 +1,6 @@
+/**
+ * UserContext.js - Simple implementation with singleton-like behavior
+ */
 import React, { createContext, useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -5,11 +8,18 @@ import { getUserData } from "../../lib/appwrite";
 
 export const UserContext = createContext(null);
 
+// Singleton-like behavior using module scope
+let isInitialized = false;
+
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Initialize user data only once across all instances
   useEffect(() => {
+    if (isInitialized) return;
+    isInitialized = true;
+    
     const loadUser = async () => {
       try {
         const cachedUser = await AsyncStorage.getItem("userData");

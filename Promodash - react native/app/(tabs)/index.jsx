@@ -4,11 +4,13 @@ import {
   SafeAreaView, ActivityIndicator, ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { UserContext } from "../context/UserContext";
 import { ThemeContext } from "../context/ThemeContext";
 import { FavoritesContext } from "../context/FavoritesContext";
 import { LanguageContext } from "../context/LanguageContext";
 import useAuth from "../../hooks/useAuth";
 import { getAdvertisers } from "../../lib/profitshare";
+import { getPromoBoost } from "../../lib/appwrite";
 import { categoryIcons } from "../../constants/Icons";
 import { useRouter } from "expo-router";
 import { getAverageCommission, calculateCashbackSplit } from "../../lib/cashbackCalculator";
@@ -24,6 +26,8 @@ function StoresScreen() {
   const { theme } = useContext(ThemeContext);
   const { language } = useContext(LanguageContext);
   const { favoriteStores, toggleFavoriteStore } = useContext(FavoritesContext);
+  const { user } = useContext(UserContext);
+  const [promoBoost, setPromoBoost] = useState(null);
 
   const isAuthenticated = useAuth();
 
@@ -75,6 +79,13 @@ function StoresScreen() {
       }
     }
     fetchData();
+
+    if (user?.Active_Code) {
+      getPromoBoost(user.Active_Code).then((boost) => {
+        if (boost) setPromoBoost(boost);
+      });
+    }
+
   }, []);
 
   const handleSearch = (query) => {
@@ -378,6 +389,8 @@ function StoresScreen() {
             item={item}
             onVisitStore={handleVisitStoreMemo}
             toggleFavoriteStore={toggleFavoriteStoreMemo}
+            promoBoost={promoBoost}
+            user={user}
           />
         )}
         refreshing={refreshing}
@@ -399,13 +412,45 @@ function StoresScreen() {
 
 export default memo(StoresScreen);
 
-const StoreItem = memo(({ item, onVisitStore, toggleFavoriteStore }) => {
+const StoreItem = memo(({ item, onVisitStore, toggleFavoriteStore, promoBoost, user }) => {
   const { theme } = useContext(ThemeContext);
   const { favoriteStores } = useContext(FavoritesContext);
 
   const cashbackData = useMemo(() => {
-    return calculateCashbackSplit(getAverageCommission(item.commissions?.[0]?.value));
-  }, [item.commissions]);
+    const avgCommission = getAverageCommission(item.commissions?.[0]?.value);
+    const override = item.id === "35" ? 10 : null;
+
+    let { userCashback, platformEarnings } = calculateCashbackSplit(
+      avgCommission,
+      user,
+      [], // fara boost aici
+      override
+    );
+
+    // Aplica boost manual DACA exista cod si boost
+    if (user?.Active_Code && promoBoost?.percentageBoost) {
+      userCashback = parseFloat(userCashback) + promoBoost.percentageBoost;
+      platformEarnings = avgCommission - userCashback;
+    }
+
+    return {
+      userCashback: userCashback.toFixed(2),
+      platformEarnings: platformEarnings.toFixed(2),
+    };
+  }, [item.commissions, user, promoBoost, item.id]);
+
+
+  const originalCashback = useMemo(() => {
+    const avgCommission = getAverageCommission(item.commissions?.[0]?.value);
+    const override = item.id === "35" ? 10 : null;
+
+    return calculateCashbackSplit(
+      avgCommission,
+      user,
+      [], // no boost
+      override
+    ).userCashback;
+  }, [item.commissions, user, item.id]);
 
   return (
     <TouchableOpacity
@@ -442,19 +487,40 @@ const StoreItem = memo(({ item, onVisitStore, toggleFavoriteStore }) => {
             {item.category}
           </Text>
         </View>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: theme === "Light" ? "#2575fc" : "#FFD700",
-            textAlign: "center",
-            padding: 5,
-          }}
-        >
-          {item.id === "35" ? "10%" : (cashbackData?.userCashback
-            ? `${cashbackData.userCashback}%`
-            : i18n.t("home.no_cashback"))}
-        </Text>
+
+        <View style={{ alignItems: "center" }}>
+          {user?.Active_Code && promoBoost ? (
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: theme === "Light" ? "#2575fc" : "#FFD700",
+              }}
+            >
+              <Text
+                style={{
+                  textDecorationLine: "line-through",
+                  color: "#888",
+                  marginRight: 4,
+                }}
+              >
+                {originalCashback}%
+              </Text>{" "}
+              {cashbackData.userCashback}%
+            </Text>
+          ) : (
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: theme === "Light" ? "#2575fc" : "#FFD700",
+              }}
+            >
+              {cashbackData.userCashback}%
+            </Text>
+          )}
+        </View>
+
         <TouchableOpacity
           onPress={() => toggleFavoriteStore(item)}
           style={styles.favoriteButton}
